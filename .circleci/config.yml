@@ -1,0 +1,138 @@
+version: 2.1
+
+orbs:
+  aws-ecr: circleci/aws-ecr@6.9.1
+  aws-cli: circleci/aws-cli@0.1.13
+
+commands:
+
+  prepare-terraform:
+    description: "Installs Terraform and dependencies"
+    steps:
+      - run:
+          name: Install awscli
+          command: sudo pip install awscli
+      - run:
+          name: check s3
+          command: aws sts get-caller-identity
+      - run:
+          name: keep SSH happy
+          command: |
+            mkdir -m 0700 ~/.ssh
+            ssh-keyscan -p 22 github.com >> ~/.ssh/known_hosts
+            cat ~/.ssh/known_hosts
+      - run:
+          name: Install terraform
+          command: wget https://releases.hashicorp.com/terraform/0.12.26/terraform_0.12.26_linux_amd64.zip && unzip terraform_0.12.26_linux_amd64.zip && chmod +x terraform && sudo mv terraform /usr/bin/
+      - run:
+          name: Install terragrunt
+          command: wget https://github.com/gruntwork-io/terragrunt/releases/download/v0.23.27/terragrunt_linux_amd64 && chmod +x terragrunt_linux_amd64 && sudo mv terragrunt_linux_amd64 /usr/bin/terragrunt
+
+  validate_master_branch:
+    description: "Verifies that tag commit is present on master branch"
+    steps:
+      - run:
+          name: "Verify Master branch"
+          command: |
+            echo $CIRCLE_TAG
+            git branch -r --contains $CIRCLE_SHA1 --format='%(refname:short)'
+            IS_ON_MASTER="$(git branch -r --contains $CIRCLE_SHA1 --format='%(refname:short)' | grep ^origin/master$ || true)"
+            echo "IS_ON_MASTER: \"$IS_ON_MASTER\""
+            if [[ -n "$IS_ON_MASTER" ]]
+            then
+              echo "ON MASTER BRANCH: \"$IS_ON_MASTER\""
+            else
+              echo "NOT ON MASTER BRANCH, FAILING BUILD"
+              exit 100
+            fi
+
+jobs:
+
+  validate_prod_deployment:
+    machine:
+      image: ubuntu-1604:201903-01
+    steps:
+      - checkout
+      - validate_master_branch
+
+  prepare_deploy:
+    docker:
+      - image: circleci/python:3.7-stretch
+    steps:
+      - run: mkdir -p workspace
+      - prepare-terraform
+      - run:
+          name: Checkout Foundation repository
+          command: git clone git@github.com:ausseabed/ausseabed-aws-foundation.git
+      - run:
+          name: terragrunt init
+          command: pwd && echo $CIRCLE_WORKING_DIRECTORY && terragrunt init -input=false
+      - run:
+          name: terraform plan
+          command: terragrunt plan -out=terraform.plan -input=false
+      - run: mv ./terraform.plan workspace
+      - persist_to_workspace:
+          root: workspace
+          paths:
+            - terraform.plan
+
+  do_deploy:
+    docker:
+      - image: circleci/python:3.7-stretch
+    steps:
+    - attach_workspace:
+        at: /tmp/cci-extras/workspace
+    - prepare-terraform
+    - run:
+        name: terragrunt init
+        command: pwd && echo $CIRCLE_WORKING_DIRECTORY && terragrunt init -input=false
+    - run:
+          name: terragrunt apply
+          command: |
+            terragrunt apply -input=false --auto-approve /tmp/cci-extras/workspace/terraform.plan
+
+### Pre-defined filters for workflows
+
+prod_deploy_tag_only: &prod_deploy_tag_only
+  filters:
+    tags:
+      only: /^prod/deploy/\d[\d\.]*f?$/
+    branches:
+      ignore: /.*/
+
+master_branch_only: &master_branch_only
+  filters:
+    branches:
+      only:
+        - master
+
+### Workflows section
+workflows:
+  deploy_non_prod:
+    jobs:
+      - prepare_deploy:
+          <<: *master_branch_only
+      - do_deploy:
+          <<: *master_branch_only
+          requires:
+            - prepare_deploy
+
+  deploy_to_production:
+    jobs:
+      - validate_prod_deployment:
+          <<: *prod_deploy_tag_only
+      - prepare_deploy:
+          <<: *prod_deploy_tag_only
+          requires:
+            - validate_prod_deployment
+          context: ga_sb_ecs_prod_deployment
+      - approve_deploy:
+          <<: *prod_deploy_tag_only
+          type: approval
+          requires:
+            - prepare_deploy
+      - do_deploy:
+          <<: *prod_deploy_tag_only
+          requires:
+            - approve_deploy
+          context: ga_sb_ecs_prod_deployment
