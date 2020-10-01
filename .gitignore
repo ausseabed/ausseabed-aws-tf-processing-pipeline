@@ -1,0 +1,10 @@
+backend.tf
+.DS_Store
+.terraform*
+*.auto.tfvars
+*.iml
+*.py
+
+.vscode
+*.pyc
+*.swp

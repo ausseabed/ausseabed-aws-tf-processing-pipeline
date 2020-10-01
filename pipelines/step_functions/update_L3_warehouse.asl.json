@@ -1,0 +1,127 @@
+{
+  "Comment": "An example of the Amazon States Language using a map state to process elements of an array with a max concurrency of 2.",
+  "StartAt": "Identify Unprocessed Grids",
+  "States": {
+    "Identify Unprocessed Grids": {
+      "Type": "Task",
+      "Next": "Confirm Proceed?",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "ResultPath": "$.data.lambdaresult",
+      "OutputPath": "$.data.lambdaresult.Payload.body",
+      "Parameters": {
+        "FunctionName": "arn:aws:lambda:${region}:${account_id}:function:${prefix}_identify_unprocessed_grids:$LATEST",
+        "Payload": {
+          "action": "list",
+          "cat-url.$": "$.cat-url",
+          "bucket.$": "$.bucket",
+          "proceed.$": "$.proceed"
+        }
+      }
+    },
+    "Confirm Proceed?": {
+      "Comment": "Trial run, or should we do anything?",
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.proceed",
+          "BooleanEquals": true,
+          "Next": "Build Warehouse"
+        }
+      ],
+      "Default": "Do not proceed"
+    },
+    "Build Warehouse": {
+      "Type": "Map",
+      "ItemsPath": "$.product-ids",
+      "MaxConcurrency": 20,
+      "Next": "Final State",
+      "Iterator": {
+        "StartAt": "Avoid Collisions Pause",
+        "States": {
+          "Avoid Collisions Pause": {
+            "Type": "Wait",
+            "TimestampPath": "$.est",
+            "Next": "Select Unprocessed Grids"
+          },
+          "Select Unprocessed Grids": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "ResultPath": "$.data.lambdaresult",
+            "OutputPath": "$.data.lambdaresult.Payload.body",
+            "Parameters": {
+              "FunctionName": "arn:aws:lambda:${region}:${account_id}:function:${prefix}_identify_unprocessed_grids:$LATEST",
+              "Payload": {
+                "action": "select",
+                "cat-url.$": "$.cat-url",
+                "product-id.$": "$.product-id",
+                "uuid.$": "$.uuid",
+                "build-name.$": "$.build-name",
+                "bucket.$": "$.bucket"
+              }
+            },
+            "Next": "Build Product"
+          },
+          "Build Product": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::states:startExecution.sync:2",
+            "Parameters": {
+              "Input": {
+                "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
+                "cat-url.$": "$.cat-url",
+                "product-id.$": "$.product-id",
+                "uuid.$": "$.uuid",
+                "bucket.$": "$.bucket",
+                "s3_src_tif.$": "$.s3_src_tif",
+                "s3_dest_shp.$": "$.s3_dest_shp",
+                "s3_dest_tif.$": "$.s3_dest_tif",
+                "s3_hillshade_dest_tif.$": "$.s3_hillshade_dest_tif",
+                "s3_scaling_factor.$": "$.s3_scaling_factor"
+              },
+              "StateMachineArn": "arn:aws:states:${region}:${account_id}:stateMachine:${aws_step_function_process_l3_name}",
+              "Name.$": "$.build-name"
+            },
+            "Next": "Save Product Information",
+            "Catch": [
+              {
+                "ErrorEquals": [
+                  "States.ALL"
+                ],
+                "Next": "Finish Iteration"
+              }
+            ]
+          },
+          "Save Product Information": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "InputPath": "$.Input",
+            "ResultPath": "$.data.lambdaresult",
+            "OutputPath": "$.data.lambdaresult.Payload.body",
+            "Parameters": {
+              "FunctionName": "arn:aws:lambda:${region}:${account_id}:function:${prefix}_identify_unprocessed_grids:$LATEST",
+              "Payload": {
+                "action": "save",
+                "cat-url.$": "$.cat-url",
+                "product-id.$": "$.product-id",
+                "bucket.$": "$.bucket",
+                "uuid.$": "$.uuid"
+              }
+            },
+            "Next": "Finish Iteration"
+          },
+          "Finish Iteration": {
+            "Type": "Pass",
+            "End": true
+          }
+        }
+      }
+    },
+    "Final State": {
+      "Type": "Pass",
+      "End": true
+    },
+    "Do not proceed": {
+      "Type": "Fail",
+      "Cause": "Set variable proceed to true to build data in warehouse"
+    }
+  }
+}
