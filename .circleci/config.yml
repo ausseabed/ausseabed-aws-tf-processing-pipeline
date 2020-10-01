@@ -61,9 +61,7 @@ jobs:
     steps:
       - run: mkdir -p workspace
       - prepare-terraform
-      - run:
-          name: Checkout Foundation repository
-          command: git clone git@github.com:ausseabed/ausseabed-aws-foundation.git
+      - checkout
       - run:
           name: terragrunt init
           command: pwd && echo $CIRCLE_WORKING_DIRECTORY && terragrunt init -input=false
@@ -83,6 +81,7 @@ jobs:
     - attach_workspace:
         at: /tmp/cci-extras/workspace
     - prepare-terraform
+    - checkout
     - run:
         name: terragrunt init
         command: pwd && echo $CIRCLE_WORKING_DIRECTORY && terragrunt init -input=false
