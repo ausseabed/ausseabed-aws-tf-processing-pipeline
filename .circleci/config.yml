@@ -59,9 +59,9 @@ jobs:
     docker:
       - image: circleci/python:3.7-stretch
     steps:
+      - checkout
       - run: mkdir -p workspace
       - prepare-terraform
-      - checkout
       - run:
           name: terragrunt init
           command: pwd && echo $CIRCLE_WORKING_DIRECTORY && terragrunt init -input=false
@@ -111,10 +111,10 @@ workflows:
     jobs:
       - prepare_deploy:
           <<: *master_branch_only
-      - do_deploy:
-          <<: *master_branch_only
-          requires:
-            - prepare_deploy
+#      - do_deploy:
+#          <<: *master_branch_only
+#          requires:
+#            - prepare_deploy
 
   deploy_to_production:
     jobs:
