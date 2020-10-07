@@ -78,17 +78,17 @@ jobs:
     docker:
       - image: circleci/python:3.7-stretch
     steps:
-    - attach_workspace:
-        at: /tmp/cci-extras/workspace
-    - prepare-terraform
-    - checkout
-    - run:
-        name: terragrunt init
-        command: pwd && echo $CIRCLE_WORKING_DIRECTORY && terragrunt init -input=false
-    - run:
-          name: terragrunt apply
-          command: |
-            terragrunt apply -input=false --auto-approve /tmp/cci-extras/workspace/terraform.plan
+      - checkout
+      - attach_workspace:
+          at: /tmp/cci-extras/workspace
+      - prepare-terraform
+      - run:
+          name: terragrunt init
+          command: pwd && echo $CIRCLE_WORKING_DIRECTORY && terragrunt init -input=false
+      - run:
+            name: terragrunt apply
+            command: |
+              terragrunt apply -input=false --auto-approve /tmp/cci-extras/workspace/terraform.plan
 
 ### Pre-defined filters for workflows
 
