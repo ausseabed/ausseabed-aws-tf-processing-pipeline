@@ -111,10 +111,10 @@ workflows:
     jobs:
       - prepare_deploy:
           <<: *master_branch_only
-#      - do_deploy:
-#          <<: *master_branch_only
-#          requires:
-#            - prepare_deploy
+      - do_deploy:
+          <<: *master_branch_only
+          requires:
+            - prepare_deploy
 
   deploy_to_production:
     jobs:
