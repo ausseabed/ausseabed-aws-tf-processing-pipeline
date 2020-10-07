@@ -18,7 +18,7 @@ commands:
       - run:
           name: keep SSH happy
           command: |
-            mkdir -m 0700 ~/.ssh
+            mkdir -m 0700 -p ~/.ssh
             ssh-keyscan -p 22 github.com >> ~/.ssh/known_hosts
             cat ~/.ssh/known_hosts
       - run:
