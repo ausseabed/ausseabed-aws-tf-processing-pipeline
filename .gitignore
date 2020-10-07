@@ -3,7 +3,7 @@ backend.tf
 .terraform*
 *.auto.tfvars
 *.iml
-*.py
+/*.py
 
 .vscode
 *.pyc
