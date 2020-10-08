@@ -27,6 +27,7 @@ class UpdateDatabaseAction():
                 api_client)
             product_l3_src_id = self.product_l3_src.id
             product_l3_dist_dto = product_catalogue_py_rest_client.ProductL3DistDto(
+                bathymetry_bag_location="",
                 bathymetry_location=self.src_dist_name.s3_dest_tif,
                 hillshade_location=self.src_dist_name.s3_hillshade_dest_tif,
                 l3_coverage_location=self.src_dist_name.s3_dest_shp
