@@ -1,0 +1,1 @@
+This folder contains lambda modules compiled during `terraform plan` phase 

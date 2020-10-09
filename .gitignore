@@ -8,3 +8,6 @@ backend.tf
 .vscode
 *.pyc
 *.swp
+
+/lambda_compiler_out/*.py
+/lambda_compiler_out/*.zip

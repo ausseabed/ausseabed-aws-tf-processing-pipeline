@@ -69,10 +69,11 @@ jobs:
           name: terraform plan
           command: terragrunt plan -out=terraform.plan -input=false
       - run: mv ./terraform.plan workspace
+      - run: mv ./lambda_compiler_out workspace
       - persist_to_workspace:
           root: workspace
           paths:
-            - terraform.plan
+            - *
 
   do_deploy:
     docker:
@@ -83,12 +84,17 @@ jobs:
           at: /tmp/cci-extras/workspace
       - prepare-terraform
       - run:
+          name: restore compiled units
+          command: |
+            rm -rf ./lambda_compiler_out
+            mv /tmp/cci-extras/workspace/lambda_compiler_out .
+      - run:
           name: terragrunt init
           command: pwd && echo $CIRCLE_WORKING_DIRECTORY && terragrunt init -input=false
       - run:
-            name: terragrunt apply
-            command: |
-              terragrunt apply -input=false --auto-approve /tmp/cci-extras/workspace/terraform.plan
+          name: terragrunt apply
+          command: |
+            terragrunt apply -input=false --auto-approve /tmp/cci-extras/workspace/terraform.plan
 
 ### Pre-defined filters for workflows
 
@@ -111,10 +117,15 @@ workflows:
     jobs:
       - prepare_deploy:
           <<: *master_branch_only
+      - approve_deploy:
+          <<: *master_branch_only
+          type: approval
+          requires:
+            - prepare_deploy
       - do_deploy:
           <<: *master_branch_only
           requires:
-            - prepare_deploy
+            - approve_deploy
 
   deploy_to_production:
     jobs:

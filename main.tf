@@ -69,7 +69,7 @@ module "get_resume_lambda_function" {
   # Enable build functionality.
   build_mode = "FILENAME"
   source_dir = "${path.module}/src/lambda/resume_from_step"
-  filename   = "getResumeFromStep.py"
+  filename   = "./lambda_compiler_out/getResumeFromStep.py"
 
   # Create and use a role with CloudWatch Logs permissions.
   role_cloudwatch_logs = true
@@ -91,14 +91,14 @@ module "identify_instrument_lambda_function" {
   # Enable build functionality.
   build_mode = "FILENAME"
   source_dir = "${path.module}/src/lambda/identify_instrument_files"
-  filename   = "identify_instrument_files.py"
+  filename   = "./lambda_compiler_out/identify_instrument_files.py"
 
   # Create and use a role with CloudWatch Logs permissions.
   role_cloudwatch_logs = true
 }
 
 module "identify_unprocessed_grids_lambda_function" {
-  source = "github.com/ausseabed/terraform-aws-lambda-builder"
+  source = "github.com/ausseabed/terraform-aws-lambda-builder?ref=feature%2Fcompile_output_dir"
 
   # Standard aws_lambda_function attributes.
   function_name = "ga_sb_${local.env}_identify_unprocessed_grids"
@@ -114,6 +114,7 @@ module "identify_unprocessed_grids_lambda_function" {
   source_dir = "${path.module}/src/lambda/identify_unprocessed_grids"
   # filename   = "identify_unprocessed_grids.py"
   s3_bucket = "ausseabed-processing-pipeline-${local.env}-support"
+  compile_output_dir = "./lambda_compiler_out"
 
   # Create and use a role with CloudWatch Logs permissions.
   role_cloudwatch_logs = true
