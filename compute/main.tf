@@ -123,8 +123,8 @@ resource "aws_ecs_task_definition" "gdalbigtiff" {
     "mountPoints": [
       {
         "sourceVolume": "myEfsVolume",
-        "containerPath": "/mnt/efs", 
-        "readOnly": true
+        "containerPath": "/mnt/efs",
+        "readOnly" : false
       }
     ],
     "workingDirectory": "/mnt/efs"
@@ -132,14 +132,13 @@ resource "aws_ecs_task_definition" "gdalbigtiff" {
 ]
 DEFINITION
   volume {
-    name = "myEfsVolume"
+    name = var.gdal_efs.creation_token
     docker_volume_configuration {
       scope  = "task"
       driver = "local"
-
     }
     efs_volume_configuration {
-      file_system_id = var.gdal_efs_id
+      file_system_id = var.gdal_efs.id
       root_directory = "/mnt/efs"
       # transit_encryption = "ENABLED"
       # transit_encryption_port = 2999

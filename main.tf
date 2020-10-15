@@ -36,7 +36,7 @@ module "compute" {
   gdal_image                  = "${var.ecr_url}/${var.gdal_image}"
   mbsystem_image              = "${var.ecr_url}/${var.mbsystem_image}"
   pdal_image                  = "${var.ecr_url}/${var.pdal_image}"
-  gdal_efs_id                 = module.filesystem.gdal_efs_id
+  gdal_efs                    = module.filesystem.gdal_efs
   ecs_task_execution_role_arn = module.ancillary.ecs_task_execution_role_arn
 
   prod_data_s3_account_canonical_id = var.prod_data_s3_account_canonical_id
