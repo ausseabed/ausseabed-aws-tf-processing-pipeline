@@ -11,4 +11,4 @@ variable "startstopec2_image" {}
 variable "ecs_task_execution_role_arn" {}
 
 variable "prod_data_s3_account_canonical_id" {}
-
+variable "gdal_efs_id" {}

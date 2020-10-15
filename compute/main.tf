@@ -84,6 +84,73 @@ resource "aws_ecs_task_definition" "startstopec2" {
 DEFINITION
 }
 
+
+
+
+resource "aws_ecs_task_definition" "gdalbigtiff" {
+  family       = "gdalbigtiff"
+  network_mode = "awsvpc"
+  requires_compatibilities = [
+  "FARGATE"]
+  cpu                = var.fargate_cpu
+  memory             = var.fargate_memory
+  execution_role_arn = var.ecs_task_execution_role_arn
+  task_role_arn      = var.ecs_task_execution_role_arn
+
+  container_definitions = <<DEFINITION
+[
+  { "logConfiguration": {
+        "logDriver": "awslogs",
+        "secretOptions": null,
+        "options": {
+          "awslogs-group": "/ecs/ga_sb_${var.env}_containers",
+          "awslogs-region": "ap-southeast-2",
+          "awslogs-stream-prefix": "gdal"
+        }
+      },
+    "cpu": ${var.fargate_cpu},
+    "image": "${var.gdal_image}",
+    "memory": ${var.fargate_memory},
+    "name": "app",
+    "networkMode": "awsvpc",
+    "environment": [
+      {
+        "name": "S3_ACCOUNT_CANONICAL_ID",
+        "value": "${var.prod_data_s3_account_canonical_id}"
+      }
+    ],
+    "portMappings": [],
+    "mountPoints": [
+      {
+        "sourceVolume": "myEfsVolume",
+        "containerPath": "/mnt/efs", 
+        "readOnly": true
+      }
+    ],
+    "workingDirectory": "/mnt/efs"
+  }
+]
+DEFINITION
+  volume {
+    name = "myEfsVolume"
+    docker_volume_configuration {
+      scope  = "task"
+      driver = "local"
+
+    }
+    efs_volume_configuration {
+      file_system_id = var.gdal_efs_id
+      root_directory = "/mnt/efs"
+      # transit_encryption = "ENABLED"
+      # transit_encryption_port = 2999
+      # authorization_config {
+      #   access_point_id = aws_efs_access_point.test.id // TODO
+      #   iam             = "ENABLED"
+      # }
+    }
+  }
+}
+
 resource "aws_ecs_task_definition" "gdal" {
   family       = "gdal"
   network_mode = "awsvpc"
