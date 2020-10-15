@@ -4,7 +4,7 @@ locals {
 
 provider "aws" {
   region  = var.aws_region
-  version = "2.54"
+  version = "2.68"
 }
 
 module "ancillary" {
@@ -19,6 +19,11 @@ module "networking" {
 
 }
 
+module "filesystem" {
+  source     = "./filesystem"
+  env        = local.env
+  networking = module.networking
+}
 
 module "compute" {
   source = "./compute"
@@ -31,6 +36,7 @@ module "compute" {
   gdal_image                  = "${var.ecr_url}/${var.gdal_image}"
   mbsystem_image              = "${var.ecr_url}/${var.mbsystem_image}"
   pdal_image                  = "${var.ecr_url}/${var.pdal_image}"
+  gdal_efs_id                 = module.filesystem.gdal_efs_id
   ecs_task_execution_role_arn = module.ancillary.ecs_task_execution_role_arn
 
   prod_data_s3_account_canonical_id = var.prod_data_s3_account_canonical_id
@@ -113,7 +119,7 @@ module "identify_unprocessed_grids_lambda_function" {
   build_mode = "LAMBDA"
   source_dir = "${path.module}/src/lambda/identify_unprocessed_grids"
   # filename   = "identify_unprocessed_grids.py"
-  s3_bucket = "ausseabed-processing-pipeline-${local.env}-support"
+  s3_bucket          = "ausseabed-processing-pipeline-${local.env}-support"
   compile_output_dir = "./lambda_compiler_out"
 
   # Create and use a role with CloudWatch Logs permissions.
