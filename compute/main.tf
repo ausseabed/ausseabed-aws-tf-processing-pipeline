@@ -133,10 +133,6 @@ resource "aws_ecs_task_definition" "gdalbigtiff" {
 DEFINITION
   volume {
     name = var.gdal_efs.creation_token
-    docker_volume_configuration {
-      scope  = "task"
-      driver = "local"
-    }
     efs_volume_configuration {
       file_system_id = var.gdal_efs.id
       root_directory = "/mnt/efs"
