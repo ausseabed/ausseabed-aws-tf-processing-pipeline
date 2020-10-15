@@ -122,7 +122,7 @@ resource "aws_ecs_task_definition" "gdalbigtiff" {
     "portMappings": [],
     "mountPoints": [
       {
-        "sourceVolume": "myEfsVolume",
+        "sourceVolume": "${var.gdal_efs.creation_token}",
         "containerPath": "/mnt/efs",
         "readOnly" : false
       }
