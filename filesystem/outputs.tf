@@ -1,5 +1,5 @@
 
-output "gdal_efs_id" {
-  value = aws_efs_file_system.gdal_temp_efs.id
+output "gdal_efs" {
+  value = aws_efs_file_system.gdal_temp_efs
 }
 
