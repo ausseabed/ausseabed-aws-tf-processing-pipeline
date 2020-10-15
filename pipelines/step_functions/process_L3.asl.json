@@ -31,7 +31,7 @@
                     {
                       "Name": "app",
                       "Command": [
-                        "./overlays.sh"
+                        "/usr/src/app/overlays.sh"
                       ],
                       "Environment": [
                         {
@@ -167,7 +167,7 @@
                     {
                       "Name": "app",
                       "Command": [
-                        "./create_hillshade.sh"
+                        "/usr/src/app/create_hillshade.sh"
                       ],
                       "Environment": [
                         {
