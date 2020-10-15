@@ -42,6 +42,13 @@ resource "aws_security_group" "ga_sb_env_pipelines_sg" {
   description = "Used for step functions to access internal resources"
   vpc_id      = data.aws_vpc.ga_sb_vpc.id
 
+  # NFS port for EFS communication
+  ingress {
+    from_port = 2049
+    to_port   = 2049
+    protocol  = "tcp"
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
