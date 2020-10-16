@@ -30,6 +30,6 @@ resource "aws_efs_access_point" "gdal_temp_efs_access_point" {
 resource "aws_efs_mount_target" "gdal_temp_efs_mount_target" {
   count           = length(var.networking.app_tier_subnets)
   file_system_id  = aws_efs_file_system.gdal_temp_efs.id
-  subnet_id       = tolist(var.app_tier_subnets)
+  subnet_id       = tolist(var.networking.app_tier_subnets)
   security_groups = [var.networking.pipelines_sg]
 }
