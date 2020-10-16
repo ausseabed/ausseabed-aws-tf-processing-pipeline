@@ -20,3 +20,4 @@ variable "aws_ecs_task_definition_pdal_arn" {}
 variable "aws_ecs_task_definition_caris_version_arn" {}
 variable "aws_ecs_task_definition_startstopec2_arn" {}
 variable "local_storage_folder" {}
+variable "pipeline_ecs_subnet" { type = string }

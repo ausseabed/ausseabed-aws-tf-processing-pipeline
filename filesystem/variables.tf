@@ -8,3 +8,4 @@ variable "networking" {
 }
 
 variable "env" {}
+variable "pipeline_ecs_subnet" { type = string }
