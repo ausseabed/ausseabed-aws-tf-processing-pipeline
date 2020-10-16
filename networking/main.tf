@@ -44,9 +44,10 @@ resource "aws_security_group" "ga_sb_env_pipelines_sg" {
 
   # NFS port for EFS communication
   ingress {
-    from_port = 2049
-    to_port   = 2049
-    protocol  = "tcp"
+    from_port   = 2049
+    to_port     = 2049
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {

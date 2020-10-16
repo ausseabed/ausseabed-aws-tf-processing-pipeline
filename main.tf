@@ -1,5 +1,9 @@
 locals {
   env = (var.env != null) ? var.env : terraform.workspace
+
+  # Making sure that EFS Share provisioned in the same designated subnet step functions use to run ECS Tasks in
+  pipeline_ecs_subnet = tolist(module.networking.app_tier_subnets)[0]
+
 }
 
 provider "aws" {
@@ -20,26 +24,28 @@ module "networking" {
 }
 
 module "filesystem" {
-  source     = "./filesystem"
-  env        = local.env
-  networking = module.networking
+  source              = "./filesystem"
+  env                 = local.env
+  networking          = module.networking
+  pipeline_ecs_subnet = local.pipeline_ecs_subnet
+
 }
 
 module "compute" {
   source = "./compute"
 
-  env                         = local.env
-  fargate_cpu                 = var.fargate_cpu
-  fargate_memory              = var.fargate_memory
-  caris_caller_image          = var.caris_caller_image
-  startstopec2_image          = var.startstopec2_image
-  gdal_image                  = "${var.ecr_url}/${var.gdal_image}"
-  mbsystem_image              = "${var.ecr_url}/${var.mbsystem_image}"
-  pdal_image                  = "${var.ecr_url}/${var.pdal_image}"
-  gdal_efs                    = module.filesystem.gdal_efs
-  ecs_task_execution_role_arn = module.ancillary.ecs_task_execution_role_arn
-
+  env                               = local.env
+  fargate_cpu                       = var.fargate_cpu
+  fargate_memory                    = var.fargate_memory
+  caris_caller_image                = var.caris_caller_image
+  startstopec2_image                = var.startstopec2_image
+  gdal_image                        = "${var.ecr_url}/${var.gdal_image}"
+  mbsystem_image                    = "${var.ecr_url}/${var.mbsystem_image}"
+  pdal_image                        = "${var.ecr_url}/${var.pdal_image}"
+  gdal_efs                          = module.filesystem.gdal_efs
+  ecs_task_execution_role_arn       = module.ancillary.ecs_task_execution_role_arn
   prod_data_s3_account_canonical_id = var.prod_data_s3_account_canonical_id
+
 }
 
 
@@ -52,6 +58,7 @@ module "pipelines" {
   aws_ecs_task_definition_gdal_arn     = module.compute.aws_ecs_task_definition_gdal_arn
   aws_ecs_task_definition_mbsystem_arn = module.compute.aws_ecs_task_definition_mbsystem_arn
   aws_ecs_task_definition_pdal_arn     = module.compute.aws_ecs_task_definition_pdal_arn
+  pipeline_ecs_subnet                  = local.pipeline_ecs_subnet
 
   aws_ecs_task_definition_caris_version_arn = module.compute.aws_ecs_task_definition_caris-version_arn
   aws_ecs_task_definition_startstopec2_arn  = module.compute.aws_ecs_task_definition_startstopec2_arn

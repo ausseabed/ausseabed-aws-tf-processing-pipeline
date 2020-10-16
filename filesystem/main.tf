@@ -25,9 +25,11 @@ resource "aws_efs_access_point" "gdal_temp_efs_access_point" {
   }
 }
 # Create the mount targets on your private subnets
+# we are provisioning in subnet XXX because it is hardcoded in the launch of the container
+# to StepFunction
 resource "aws_efs_mount_target" "gdal_temp_efs_mount_target" {
   count           = length(var.networking.app_tier_subnets)
   file_system_id  = aws_efs_file_system.gdal_temp_efs.id
-  subnet_id       = tolist(var.networking.app_tier_subnets)[count.index]
+  subnet_id       = var.pipeline_ecs_subnet
   security_groups = [var.networking.pipelines_sg]
 }
