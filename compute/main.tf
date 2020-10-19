@@ -135,7 +135,7 @@ DEFINITION
     name = var.gdal_efs.creation_token
     efs_volume_configuration {
       file_system_id = var.gdal_efs.id
-      root_directory = "/mnt/efs"
+      root_directory = "/"
       # transit_encryption = "ENABLED"
       # transit_encryption_port = 2999
       # authorization_config {
