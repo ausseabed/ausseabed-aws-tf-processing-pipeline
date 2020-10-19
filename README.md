@@ -6,6 +6,7 @@
 - [Continuous Delivery](#continuous-delivery)
   - [Build + Publish](#build--publish)
   - [Deploy](#deploy)
+- [Troubleshooting](#troubleshooting)
 
 # Introduction
 AusSeabed is a national seabed mapping coordination program. The program aims to serve the Australian community that relies on seabed data by coordinating collection efforts in Australian waters and improving data access. 
@@ -25,3 +26,6 @@ git pull
 git tag prod/deploy/0.1.1
 git push origin prod/deploy/0.1.1
 ```
+
+# Troubleshooting
+If the size of the imagery in the L3 pipeline is too big for the standard GDAL image to handle. Switch to the gdalbigtiff image which uses an EFS for local storage. The required change should go in pipelines/step_function/process_L3.asl.json "TaskDefinition": ... It happens rarely enough that it hasn't been parameterised.
