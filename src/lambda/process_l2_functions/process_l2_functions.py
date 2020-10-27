@@ -58,10 +58,10 @@ def startEc2Action(event):
             InstanceIds=[instance_id],
             DryRun=True  # Make it False to test
         )
+        logging.info(responses)
     except Exception as e:
         logging.exception(e)
 
-    logging.info(responses)
     output = "Success"
     return output
 
