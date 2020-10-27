@@ -22,7 +22,7 @@
         "data1": 0.5,
         "data2": 1.5
       },
-      "ResultPath": "$.result",
+      "ResultPath": "$",
       "Next": "Do Processing"
     },
     "Do Processing": {
