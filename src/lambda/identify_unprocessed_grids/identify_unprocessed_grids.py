@@ -72,12 +72,12 @@ def lambda_handler(event, context):
     product_database.download_from_rest()
 
     if (event["action"] == "list"):
-        output = listL3Action(product_database)
+        output = listL3Action(event, product_database)
     elif (event["action"] == "select"):
-        output = selectL3Action(product_database)
+        output = selectL3Action(event, product_database)
 
     elif (event["action"] == "save"):
-        output = saveL3Action(product_database, token)
+        output = saveL3Action(event, product_database, token)
 
     return {
         'statusCode': 200,
@@ -85,7 +85,7 @@ def lambda_handler(event, context):
     }
 
 
-def listL3Action(product_database):
+def listL3Action(event, product_database):
     logging.info("Found {} source products".format(len(
         [product.id for product in product_database.l3_src_products])))
 
@@ -124,7 +124,7 @@ def listL3Action(product_database):
     return output
 
 
-def selectL3Action(product_database):
+def selectL3Action(event, product_database):
     selected_products = [
         product for product in product_database.l3_src_products if product.id == event["product-id"]]
 
@@ -150,7 +150,7 @@ def selectL3Action(product_database):
     return output
 
 
-def saveL3Action(product_database, token):
+def saveL3Action(event, product_database, token):
     selected_products = [
         product for product in product_database.l3_src_products if product.id == event["product-id"]]
 

@@ -5,26 +5,13 @@ import uuid
 import logging
 from time import sleep
 
-from pythonjsonlogger import jsonlogger
 from datetime import datetime, timezone
 from datetime import timedelta
 
 import boto3
 
 logger = logging.getLogger()
-
-# Testing showed lambda sets up one default handler. If there are more,
-# something has changed and we want to fail so an operator can investigate.
-assert len(logger.handlers) == 1
-
 logger.setLevel(logging.INFO)
-json_handler = logging.StreamHandler()
-formatter = jsonlogger.JsonFormatter(
-    fmt='%(asctime)s %(levelname)s %(name)s %(message)s'
-)
-json_handler.setFormatter(formatter)
-logger.addHandler(json_handler)
-logger.removeHandler(logger.handlers[0])
 
 """
 lambda handler is the entry point for functions of the L2 Processing Pipeline
@@ -50,12 +37,12 @@ def lambda_handler(event, context):
     logging.info(event["action"])
 
     if (event["action"] == "start-ec2"):
-        output = startEc2Action()
+        output = startEc2Action(event)
     elif (event["action"] == "run-script"):
-        output = runScriptAction()
+        output = runScriptAction(event)
 
     elif (event["action"] == "stop-ec2"):
-        output = stopEc2Action()
+        output = stopEc2Action(event)
 
     return {
         'statusCode': 200,
@@ -63,7 +50,7 @@ def lambda_handler(event, context):
     }
 
 
-def startEc2Action():
+def startEc2Action(event):
     logging.info('Starting EC2 machine')
     instance_id = event["instance-id"]
     try:
@@ -79,13 +66,13 @@ def startEc2Action():
     return output
 
 
-def runScriptAction():
+def runScriptAction(event):
     # event["bucket"], event["uuid"])
     output = "Success"
     return output
 
 
-def stopEc2Action():
+def stopEc2Action(event):
     # event["bucket"], event["uuid"])
     logging.info('Stopping EC2 machine')
     instance_id = event["instance-id"]
