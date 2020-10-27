@@ -31,6 +31,13 @@ module "filesystem" {
 
 }
 
+module "ec2" {
+  source     = "./ec2"
+  env        = local.env
+  aws_region = var.aws_region
+  caris_ami  = var.caris_ami
+}
+
 module "compute" {
   source = "./compute"
 
@@ -88,6 +95,27 @@ module "get_resume_lambda_function" {
   role_cloudwatch_logs = true
 }
 
+
+module "process_l2_functions" {
+  source = "git@github.com:ausseabed/terraform-aws-lambda-builder.git"
+
+  # Standard aws_lambda_function attributes.
+  function_name = "ga_sb_${local.env}-process-l2-functions"
+  handler       = "process_l2_functions.lambda_handler"
+  runtime       = "python3.6"
+  timeout       = 30
+  role          = module.ancillary.getResumeFromStep_role
+  create_role   = true
+  enabled       = true
+
+  # Enable build functionality.
+  build_mode = "FILENAME"
+  source_dir = "${path.module}/src/lambda/process_l2_functions"
+  filename   = "./lambda_compiler_out/process_l2_functions.py"
+
+  # Create and use a role with CloudWatch Logs permissions.
+  role_cloudwatch_logs = true
+}
 
 module "identify_instrument_lambda_function" {
   source = "github.com/ausseabed/terraform-aws-lambda-builder"

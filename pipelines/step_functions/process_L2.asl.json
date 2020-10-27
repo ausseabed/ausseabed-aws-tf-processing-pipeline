@@ -1,0 +1,59 @@
+{
+  "StartAt": "Start EC2 Instance",
+  "States": {
+    "Start EC2 Instance": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "arn:aws:lambda:${region}:${account_id}:function:${prefix}_identify_unprocessed_grids:$LATEST",
+        "Payload": {
+          "action": "start-ec2",
+          "instance-id": "${instance_id}",
+          "Input.$": "$"
+        }
+      },
+      "ResultPath": "$.data.lambdaresult",
+      "OutputPath": "$.data.lambdaresult.Payload.body",
+      "Next": "Wait For EC2 Start"
+    },
+    "Wait For EC2 Start": {
+      "Type": "Pass",
+      "Result": {
+        "data1": 0.5,
+        "data2": 1.5
+      },
+      "ResultPath": "$.result",
+      "Next": "Do Processing"
+    },
+    "Do Processing": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "arn:aws:lambda:${region}:${account_id}:function:${prefix}_identify_unprocessed_grids:$LATEST",
+        "Payload": {
+          "action": "run-script",
+          "instance-id": "${instance_id}",
+          "Input.$": "$"
+        }
+      },
+      "ResultPath": "$.data.lambdaresult",
+      "OutputPath": "$.data.lambdaresult.Payload.body",
+      "Next": "Stop EC2 Instance"
+    },
+    "Stop EC2 Instance": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "arn:aws:lambda:${region}:${account_id}:function:${prefix}_identify_unprocessed_grids:$LATEST",
+        "Payload": {
+          "action": "stop-ec2",
+          "instance-id": "${instance_id}",
+          "Input.$": "$"
+        }
+      },
+      "ResultPath": "$.data.lambdaresult",
+      "OutputPath": "$.data.lambdaresult.Payload.body",
+      "End": true
+    }
+  }
+}
