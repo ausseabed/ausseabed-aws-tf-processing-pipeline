@@ -54,7 +54,8 @@ resource "aws_iam_role_policy" "ga_sb_pp_sfn_policy" {
             "Resource": [
                 "arn:aws:lambda:${var.region}:${local.account_id}:function:getResumeFromStep:$LATEST",
                 "arn:aws:lambda:${var.region}:${local.account_id}:function:ga_sb_${var.env}_identify_instrument_files:$LATEST",
-                "arn:aws:lambda:${var.region}:${local.account_id}:function:ga_sb_${var.env}_identify_unprocessed_grids:$LATEST"
+                "arn:aws:lambda:${var.region}:${local.account_id}:function:ga_sb_${var.env}_identify_unprocessed_grids:$LATEST",
+                "arn:aws:lambda:${var.region}:${local.account_id}:function:ga_sb_${var.env}-process-l2-functions:$LATEST"
             ]
         },
         {
@@ -355,7 +356,7 @@ resource "aws_iam_role_policy" "identify_instrument_files-lambda-role-policy" {
                 "logs:CreateLogStream",
                 "logs:PutLogEvents"
             ],
-            "Resource": "arn:aws:logs:${var.region}:${local.account_id}:log-group:/aws/lambda/ga_sb_${var.env}_identify_unprocessed_grids:*"
+            "Resource": "arn:aws:logs:${var.region}:${local.account_id}:log-group:/aws/lambda/ga_sb_${var.env}*"
         },
         {
             "Sid": "forStepFunctions",

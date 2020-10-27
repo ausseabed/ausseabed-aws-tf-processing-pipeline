@@ -104,7 +104,7 @@ module "process_l2_functions" {
   handler       = "process_l2_functions.lambda_handler"
   runtime       = "python3.6"
   timeout       = 30
-  role          = module.ancillary.getResumeFromStep_role
+  role          = module.ancillary.identify_instrument_files_role
   create_role   = true
   enabled       = true
 

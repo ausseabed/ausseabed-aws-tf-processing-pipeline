@@ -3,7 +3,6 @@ import argparse
 import re
 import uuid
 import logging
-from get_secrets import get_secret
 from time import sleep
 
 from pythonjsonlogger import jsonlogger
