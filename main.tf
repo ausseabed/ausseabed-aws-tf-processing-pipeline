@@ -66,6 +66,7 @@ module "pipelines" {
   aws_ecs_task_definition_mbsystem_arn = module.compute.aws_ecs_task_definition_mbsystem_arn
   aws_ecs_task_definition_pdal_arn     = module.compute.aws_ecs_task_definition_pdal_arn
   pipeline_ecs_subnet                  = local.pipeline_ecs_subnet
+  aws_instance_caris                   = module.ec2.aws_instance_caris
 
   aws_ecs_task_definition_caris_version_arn = module.compute.aws_ecs_task_definition_caris-version_arn
   aws_ecs_task_definition_startstopec2_arn  = module.compute.aws_ecs_task_definition_startstopec2_arn
@@ -104,7 +105,7 @@ module "process_l2_functions" {
   handler       = "process_l2_functions.lambda_handler"
   runtime       = "python3.6"
   timeout       = 30
-  role          = module.ancillary.identify_instrument_files_role
+  role          = module.ancillary.process_l2_role
   create_role   = true
   enabled       = true
 

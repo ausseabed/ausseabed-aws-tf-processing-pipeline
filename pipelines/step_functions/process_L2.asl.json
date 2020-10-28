@@ -3,17 +3,29 @@
   "States": {
     "Start EC2 Instance": {
       "Type": "Task",
-      "Resource": "arn:aws:states:::lambda:invoke",
+      "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken",
       "Parameters": {
         "FunctionName": "arn:aws:lambda:${region}:${account_id}:function:${prefix}-process-l2-functions:$LATEST",
         "Payload": {
           "action": "start-ec2",
           "instance-id": "${instance_id}",
+          "token.$": "$$.Task.Token",
           "Input.$": "$"
         }
       },
-      "ResultPath": "$.data.lambdaresult",
-      "OutputPath": "$.data.lambdaresult.Payload.body",
+      "TimeoutSeconds": 600,
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "States.Timeout"
+          ],
+          "IntervalSeconds": 3,
+          "MaxAttempts": 2,
+          "BackoffRate": 1.5
+        }
+      ],
+      "ResultPath": "$",
+      "OutputPath": "$",
       "Next": "Wait For EC2 Start"
     },
     "Wait For EC2 Start": {
@@ -27,12 +39,13 @@
     },
     "Do Processing": {
       "Type": "Task",
-      "Resource": "arn:aws:states:::lambda:invoke",
+      "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken",
       "Parameters": {
         "FunctionName": "arn:aws:lambda:${region}:${account_id}:function:${prefix}-process-l2-functions:$LATEST",
         "Payload": {
           "action": "run-script",
           "instance-id": "${instance_id}",
+          "token.$": "$$.Task.Token",
           "Input.$": "$"
         }
       },

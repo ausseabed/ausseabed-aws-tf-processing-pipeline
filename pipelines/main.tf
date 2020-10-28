@@ -17,7 +17,7 @@ locals {
     "aws_ecs_task_definition_pdal_arn"          = var.aws_ecs_task_definition_pdal_arn
     "aws_ecs_task_definition_caris_version_arn" = var.aws_ecs_task_definition_caris_version_arn
     "aws_ecs_task_definition_startstopec2_arn"  = var.aws_ecs_task_definition_startstopec2_arn
-    "instance_id"                               = "i-0782edd0043e97b9f" # TODO - link this to caris ec2 and perms
+    "instance_id"                               = var.aws_instance_caris
     "local_storage_folder"                      = var.local_storage_folder
     "aws_step_function_process_l3_name"         = "ga-sb-${var.env}-ausseabed-processing-pipeline-l3"
     "steps" = ["Get caris version", "data quality check", "prepare change vessel config file", "Create HIPS file",
