@@ -57,3 +57,40 @@ resource "aws_security_group" "ga_sb_env_pipelines_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
+
+
+resource "aws_security_group" "caris_ec2_sg" {
+  name        = "ga_sb_${var.env}_caris_sg"
+  description = "Used for accessing the caris machines for processing"
+  vpc_id      = data.aws_vpc.ga_sb_vpc.id
+
+  # ssh port from step function to caris machine
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 5093
+    to_port     = 5093
+    protocol    = "tcp"
+    cidr_blocks = ["13.236.78.35/32"]
+  }
+
+  # uncomment for remote desktop port for debugging
+  # ingress {
+  #   from_port   = 3389
+  #   to_port     = 3389
+  #   protocol    = "tcp"
+  #   cidr_blocks = ["0.0.0.0/0"]
+  # }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}

@@ -20,3 +20,7 @@ output "app_tier_subnets" {
 output "pipelines_sg" {
   value = aws_security_group.ga_sb_env_pipelines_sg.id
 }
+
+output "caris_sg" {
+  value = aws_security_group.caris_ec2_sg.id
+}

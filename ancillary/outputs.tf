@@ -22,3 +22,7 @@ output "identify_instrument_files_role" {
 output "process_l2_role" {
   value = aws_iam_role.process_l2_role-lambda-role.arn
 }
+
+output "caris_ec2_iip" {
+  value = aws_iam_instance_profile.caris_ec2_iip.name
+}

@@ -16,4 +16,4 @@ local_storage_folder="D:\\\\awss3bucket"
 
 prod_data_s3_account_canonical_id="4442572c4082cf5ca3abf21157b0db95bab63d0b312e6cf82f3d58a95405762e"
 
-caris_ami="ami-09d34e0b9f25e7318"
+caris_ami="ami-049e16a423863186b"

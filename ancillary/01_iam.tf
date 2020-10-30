@@ -563,3 +563,84 @@ resource "aws_iam_role_policy" "getResumeFromStep-lambda-role-policy" {
 }
 DOC
 }
+
+resource "aws_iam_instance_profile" "caris_ec2_iip" {
+  name = "ga_sb_${var.env}_caris_ec2_aws_iam_instance_profile"
+  role = aws_iam_role.caris_ec2_role.name
+}
+
+resource "aws_iam_role" "caris_ec2_role" {
+  name = "ga_sb_${var.env}_caris_ec2_role"
+
+  assume_role_policy = <<DOC
+{
+   "Version":"2012-10-17",
+   "Statement":[
+      {
+         "Effect":"Allow",
+         "Principal":{
+            "Service":"ec2.amazonaws.com"
+         },
+         "Action":"sts:AssumeRole"
+      }
+   ]
+}
+DOC
+}
+
+resource "aws_iam_role_policy" "caris_ec2" {
+  name = "ga_sb_${var.env}_caris_ec2_role_policy"
+  role = aws_iam_role.caris_ec2_role.id
+
+  policy = <<DOC
+{
+"Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ssm:DescribeAssociation",
+                "ssm:GetDeployablePatchSnapshotForInstance",
+                "ssm:GetDocument",
+                "ssm:DescribeDocument",
+                "ssm:GetManifest",
+                "ssm:GetParameter",
+                "ssm:GetParameters",
+                "ssm:ListAssociations",
+                "ssm:ListInstanceAssociations",
+                "ssm:PutInventory",
+                "ssm:PutComplianceItems",
+                "ssm:PutConfigurePackageResult",
+                "ssm:UpdateAssociationStatus",
+                "ssm:UpdateInstanceAssociationStatus",
+                "ssm:UpdateInstanceInformation"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ssmmessages:CreateControlChannel",
+                "ssmmessages:CreateDataChannel",
+                "ssmmessages:OpenControlChannel",
+                "ssmmessages:OpenDataChannel"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ec2messages:AcknowledgeMessage",
+                "ec2messages:DeleteMessage",
+                "ec2messages:FailMessage",
+                "ec2messages:GetEndpoint",
+                "ec2messages:GetMessages",
+                "ec2messages:SendReply"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
+DOC
+}
+

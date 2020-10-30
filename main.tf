@@ -32,10 +32,12 @@ module "filesystem" {
 }
 
 module "ec2" {
-  source     = "./ec2"
-  env        = local.env
-  aws_region = var.aws_region
-  caris_ami  = var.caris_ami
+  source        = "./ec2"
+  env           = local.env
+  aws_region    = var.aws_region
+  caris_ami     = var.caris_ami
+  caris_ec2_iip = module.ancillary.caris_ec2_iip
+  caris_sg      = module.networking.caris_sg
 }
 
 module "compute" {

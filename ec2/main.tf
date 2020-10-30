@@ -6,6 +6,13 @@ data "aws_subnet" "app_tier_subnet" {
   }
 }
 
+data "aws_subnet" "web_tier_subnet" {
+  filter {
+    name   = "tag:Name"
+    values = ["ga_sb_${var.env}_vpc_web_1"]
+  }
+}
+
 # Key should be GaSbAllCarisL2Pipeline
 # aws ec2 create-key-pair --key-name GaSbAllCarisL2Pipeline --query 'KeyMaterial'  --output text > GaSbAllCarisL2Pipeline.pem
 # in secrets manager
@@ -14,8 +21,9 @@ resource "aws_instance" "app_tier_instance" {
   instance_type = "t2.medium"
   subnet_id     = data.aws_subnet.app_tier_subnet.id
 
-  key_name = "GaSbAllCarisL2Pipeline"
-  # iam_instance_profile = "for_dave_cli"
+  key_name             = "GaSbAllCarisL2Pipeline"
+  iam_instance_profile = var.caris_ec2_iip
+  security_groups      = [var.caris_sg]
   tags = {
     Name = "ga-sb-${var.env}-caris-l2-pipeline"
   }
@@ -24,7 +32,7 @@ resource "aws_instance" "app_tier_instance" {
     volume_size = 30
   }
   lifecycle {
-    prevent_destroy = true
+    prevent_destroy = false
   }
 }
 
