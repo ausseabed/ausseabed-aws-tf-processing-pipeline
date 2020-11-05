@@ -25,9 +25,6 @@ The actions that are handled include:
 - stop ec2 instance
 """
 
-client = boto3.client(
-    'ec2', region_name='ap-southeast-2')  # Add your region
-
 
 def lambda_handler(event, context):
     logging.info("Running the envent handler")
@@ -63,6 +60,8 @@ def chunks(l, n):
 
 
 def set_caris_machine_tag(instance_id, continue_token):
+    client = boto3.client(
+        'ec2', region_name='ap-southeast-2')  # Add your region
 
     reservations = client.describe_instances(
         Filters=[
@@ -105,6 +104,8 @@ def step_function_continue(token, result):
 def start_ec2_action(event):
     logging.info('Starting EC2 machine')
     instance_id = event["instance-id"]
+    client = boto3.client(
+        'ec2', region_name='ap-southeast-2')  # Add your region
     try:
         responses = client.start_instances(
             InstanceIds=[instance_id],
@@ -148,6 +149,25 @@ def continue_pipeline(event):
 
 def run_script_action(event):
     # event["bucket"], event["uuid"])
+    logging.info('Running script using SSM')
+    ssm = boto3.client(
+        'ssm', region_name='ap-southeast-2')  # Add your region
+    instance_id = event["instance-id"]
+    try:
+        responses = ssm.send_command(
+            InstanceIds=[instance_id],
+            DocumentName="AWS-RunPowerShellScript",
+            Parameters={'commands': ['echo helloworld']},
+            CloudWatchOutputConfig={
+                'CloudWatchLogGroupName': '/aws/lambda/ga_sb_runtime-process-l2-functions',
+                'CloudWatchOutputEnabled': True
+            }
+        )
+        logging.info(responses)
+
+    except Exception as e:
+        logging.exception(e)
+
     output = {"result": "Success"}
     return output
 
@@ -155,6 +175,8 @@ def run_script_action(event):
 def stop_ec2_action(event):
     # event["bucket"], event["uuid"])
     logging.info('Stopping EC2 machine')
+    client = boto3.client(
+        'ec2', region_name='ap-southeast-2')  # Add your region
     instance_id = event["instance-id"]
     try:
         response = client.stop_instances(

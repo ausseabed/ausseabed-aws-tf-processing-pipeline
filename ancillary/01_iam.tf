@@ -373,9 +373,30 @@ resource "aws_iam_role_policy" "process_l2_role-lambda-role-policy" {
             "Action": [
                 "ec2:StartInstances",
                 "ec2:StopInstances",
-                "ec2:CreateTags"
+                "ec2:CreateTags",
+                "ssm:SendCommand"
             ],
             "Resource": "arn:aws:ec2:${var.region}:${local.account_id}:instance/*"
+        },
+        {
+            "Sid": "SSMRunCommands",
+            "Effect": "Allow",
+            "Action": [
+                "ssm:*"
+            ],
+            "Resource": "arn:aws:ssm:${var.region}::document/AWS-*"
+        },
+        {
+          "Effect":"Allow",
+          "Action":[
+            "ssm:UpdateInstanceInformation",
+            "ssm:ListCommands",
+            "ssm:ListCommandInvocations",
+            "ssm:GetDocument",
+            "ssm:GetParametersByPath",
+            "ssm:GetParameter"
+          ],
+          "Resource":"*"
         },
         {
           "Effect":"Allow",
@@ -588,6 +609,12 @@ resource "aws_iam_role" "caris_ec2_role" {
 DOC
 }
 
+
+resource "aws_iam_role_policy_attachment" "caris_ec2_cloudwatch_agent" {
+  role       = aws_iam_role.caris_ec2_role.id
+  policy_arn = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+}
+
 resource "aws_iam_role_policy" "caris_ec2" {
   name = "ga_sb_${var.env}_caris_ec2_role_policy"
   role = aws_iam_role.caris_ec2_role.id
@@ -638,6 +665,40 @@ resource "aws_iam_role_policy" "caris_ec2" {
                 "ec2messages:SendReply"
             ],
             "Resource": "*"
+        },
+        {
+            "Sid": "GAS3Read",
+            "Action": [
+                "s3:Get*",
+                "s3:List*",
+                "s3:PutObj*"
+            ],
+            "Resource": "*",
+            "Effect": "Allow"
+        },
+        {
+            "Sid": "forCloudwatch",
+            "Effect": "Allow",
+            "Action": [
+              "logs:CreateLogGroup",
+              "logs:CreateLogDelivery",
+              "logs:GetLogDelivery",
+              "logs:UpdateLogDelivery",
+              "logs:ListLogDeliveries",
+              "logs:PutResourcePolicy",
+              "logs:DescribeResourcePolicies",
+              "logs:DescribeLogGroups"
+            ],
+            "Resource": "arn:aws:logs:${var.region}:${local.account_id}:*"
+        },
+        {
+            "Sid": "forCloudtrail",
+            "Effect": "Allow",
+            "Action": [
+                "logs:CreateLogStream",
+                "logs:PutLogEvents"
+            ],
+            "Resource": "arn:aws:logs:${var.region}:${local.account_id}:*"
         }
     ]
 }

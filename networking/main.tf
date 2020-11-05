@@ -72,21 +72,6 @@ resource "aws_security_group" "caris_ec2_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  ingress {
-    from_port   = 5093
-    to_port     = 5093
-    protocol    = "tcp"
-    cidr_blocks = ["13.236.78.35/32"]
-  }
-
-  # uncomment for remote desktop port for debugging
-  # ingress {
-  #   from_port   = 3389
-  #   to_port     = 3389
-  #   protocol    = "tcp"
-  #   cidr_blocks = ["0.0.0.0/0"]
-  # }
-
   egress {
     from_port   = 0
     to_port     = 0
