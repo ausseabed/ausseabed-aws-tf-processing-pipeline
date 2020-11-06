@@ -19,6 +19,7 @@ locals {
     "aws_ecs_task_definition_startstopec2_arn"  = var.aws_ecs_task_definition_startstopec2_arn
     "instance_id"                               = var.aws_instance_caris
     "local_storage_folder"                      = var.local_storage_folder
+    "prod_data_s3_account_canonical_id"         = var.prod_data_s3_account_canonical_id
     "aws_step_function_process_l3_name"         = "ga-sb-${var.env}-ausseabed-processing-pipeline-l3"
     "steps" = ["Get caris version", "data quality check", "prepare change vessel config file", "Create HIPS file",
       "Import to HIPS", "Upload checkpoint 1 to s3", "Import HIPS From Auxiliary", "Upload checkpoint 2 to s3",

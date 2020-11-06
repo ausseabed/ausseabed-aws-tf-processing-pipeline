@@ -74,6 +74,7 @@ module "pipelines" {
   aws_ecs_task_definition_startstopec2_arn  = module.compute.aws_ecs_task_definition_startstopec2_arn
   local_storage_folder                      = var.local_storage_folder
   region                                    = var.aws_region
+  prod_data_s3_account_canonical_id         = var.prod_data_s3_account_canonical_id
 }
 
 

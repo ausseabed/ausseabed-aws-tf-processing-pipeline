@@ -10,7 +10,7 @@
           "action": "start-ec2",
           "instance-id": "${instance_id}",
           "token.$": "$$.Task.Token",
-          "Input.$": "$"
+          "input.$": "$"
         }
       },
       "TimeoutSeconds": 600,
@@ -24,17 +24,9 @@
           "BackoffRate": 1.5
         }
       ],
-      "ResultPath": "$",
+      "InputPath": "$",
+      "ResultPath": "$.result",
       "OutputPath": "$",
-      "Next": "Wait For EC2 Start"
-    },
-    "Wait For EC2 Start": {
-      "Type": "Pass",
-      "Result": {
-        "data1": 0.5,
-        "data2": 1.5
-      },
-      "ResultPath": "$",
       "Next": "Do Processing"
     },
     "Do Processing": {
@@ -45,12 +37,24 @@
         "Payload": {
           "action": "run-script",
           "instance-id": "${instance_id}",
+          "log-stream": "/aws/lambda/ga_sb_${env}-process-l2-functions",
+          "target-location": "s3://ausseabed-public-warehouse-bathymetry/L2/",
+          "s3_account_canonical_id": "${prod_data_s3_account_canonical_id}",
           "token.$": "$$.Task.Token",
-          "Input.$": "$"
+          "working-directory-root": "D:\\",
+          "uuid.$": "$.uuid",
+          "l2-gsf-location.$": "$.l2-gsf-location",
+          "product-name.$": "$.product-name",
+          "vessel-file.$": "$.vessel-file",
+          "license-server.$": "$.license-server",
+          "depth-ranges-file.$": "$.depth-ranges-file",
+          "cube-config-file.$": "$.cube-config-file",
+          "MSL-reference.$": "$.MSL-reference",
+          "resolution.$": "$.resolution"
         }
       },
-      "ResultPath": "$.data.lambdaresult",
-      "OutputPath": "$.data.lambdaresult.Payload.body",
+      "ResultPath": "$",
+      "OutputPath": "$",
       "Next": "Stop EC2 Instance"
     },
     "Stop EC2 Instance": {
@@ -64,8 +68,8 @@
           "Input.$": "$"
         }
       },
-      "ResultPath": "$.data.lambdaresult",
-      "OutputPath": "$.data.lambdaresult.Payload.body",
+      "ResultPath": "$",
+      "OutputPath": "$",
       "End": true
     }
   }

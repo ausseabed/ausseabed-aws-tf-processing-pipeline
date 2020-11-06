@@ -359,10 +359,11 @@ resource "aws_iam_role_policy" "process_l2_role-lambda-role-policy" {
             "Resource": "arn:aws:logs:${var.region}:${local.account_id}:log-group:/aws/lambda/ga_sb_${var.env}*"
         },
         {
-            "Sid": "GAS3Read",
+            "Sid": "GAS3ReadWrite",
             "Action": [
                 "s3:Get*",
-                "s3:List*"
+                "s3:List*",
+                "s3:PutObj*"
             ],
             "Resource": "*",
             "Effect": "Allow"
@@ -699,6 +700,21 @@ resource "aws_iam_role_policy" "caris_ec2" {
                 "logs:PutLogEvents"
             ],
             "Resource": "arn:aws:logs:${var.region}:${local.account_id}:*"
+        },
+        {
+            "Sid": "CarisUser",
+            "Effect": "Allow",
+            "Action": [
+                "secretsmanager:*"
+            ],
+            "Resource": "arn:aws:secretsmanager:${var.region}:${local.account_id}:secret:ga-sb-caris-user-credentials-*"
+        },
+        {
+          "Effect":"Allow",
+          "Action": [
+            "states:SendTaskSuccess"
+          ],
+            "Resource": "*"
         }
     ]
 }
