@@ -1,0 +1,76 @@
+{
+  "StartAt": "Start EC2 Instance",
+  "States": {
+    "Start EC2 Instance": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken",
+      "Parameters": {
+        "FunctionName": "arn:aws:lambda:${region}:${account_id}:function:${prefix}-process-l2-functions:$LATEST",
+        "Payload": {
+          "action": "start-ec2",
+          "instance-id": "${instance_id}",
+          "token.$": "$$.Task.Token",
+          "input.$": "$"
+        }
+      },
+      "TimeoutSeconds": 600,
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "States.Timeout"
+          ],
+          "IntervalSeconds": 3,
+          "MaxAttempts": 2,
+          "BackoffRate": 1.5
+        }
+      ],
+      "InputPath": "$",
+      "ResultPath": "$.result",
+      "OutputPath": "$",
+      "Next": "Do Processing"
+    },
+    "Do Processing": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken",
+      "Parameters": {
+        "FunctionName": "arn:aws:lambda:${region}:${account_id}:function:${prefix}-process-l2-functions:$LATEST",
+        "Payload": {
+          "action": "run-script",
+          "instance-id": "${instance_id}",
+          "log-stream": "/aws/lambda/ga_sb_${env}-process-l2-functions",
+          "target-location": "s3://ausseabed-public-warehouse-bathymetry/L2/",
+          "s3_account_canonical_id": "${prod_data_s3_account_canonical_id}",
+          "token.$": "$$.Task.Token",
+          "working-directory-root": "D:\\",
+          "uuid.$": "$.uuid",
+          "l2-gsf-location.$": "$.l2-gsf-location",
+          "product-name.$": "$.product-name",
+          "vessel-file.$": "$.vessel-file",
+          "license-server.$": "$.license-server",
+          "depth-ranges-file.$": "$.depth-ranges-file",
+          "cube-config-file.$": "$.cube-config-file",
+          "MSL-reference.$": "$.MSL-reference",
+          "resolution.$": "$.resolution"
+        }
+      },
+      "ResultPath": "$",
+      "OutputPath": "$",
+      "Next": "Stop EC2 Instance"
+    },
+    "Stop EC2 Instance": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "arn:aws:lambda:${region}:${account_id}:function:${prefix}-process-l2-functions:$LATEST",
+        "Payload": {
+          "action": "stop-ec2",
+          "instance-id": "${instance_id}",
+          "Input.$": "$"
+        }
+      },
+      "ResultPath": "$",
+      "OutputPath": "$",
+      "End": true
+    }
+  }
+}

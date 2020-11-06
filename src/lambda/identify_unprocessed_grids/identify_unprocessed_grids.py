@@ -31,7 +31,7 @@ logger.addHandler(json_handler)
 logger.removeHandler(logger.handlers[0])
 
 """
-lambda handler is the entry point for functions of the L3 Processing Pipeline
+lambda handler is the entry point for functions of the L2/3 Processing Pipeline
 
 A series of functions is bundled into one entry point to reduce the amount of 
 terraform code that is necessary to orchestrate and manage the workflow.
@@ -71,97 +71,108 @@ def lambda_handler(event, context):
     product_database = ProductDatabase(token, event["cat-url"])
     product_database.download_from_rest()
 
-    # connect to database
-    # download stuff
-    # return pointers to stuff
     if (event["action"] == "list"):
-        logging.info("Found {} source products".format(len(
-            [product.id for product in product_database.l3_src_products])))
-
-        logging.info("Found {} products that have been processed".format(len(
-            [product.source_product.id for product in product_database.l3_dist_products])))
-
-        processed_product_ids = [product.source_product.id
-                                 for product in product_database.l3_dist_products]
-
-        unprocessed_products = [
-            product for product in product_database.l3_src_products if product.id not in processed_product_ids
-        ]
-
-        logging.info("Planning on processing {} products".format(
-            len(unprocessed_products)))
-
-        logging.info("Planning on processing: {}".format(" \n".join(
-            [product.name for product in unprocessed_products])))
-
-        output = {"product-ids":
-                  [{"product-id": product.id,
-                    "uuid": product_uuid,
-                    "cat-url": event["cat-url"],
-                    "bucket": event["bucket"],
-                    "build-name": re.sub("[^a-zA-Z0-9]", "_", product.name)[0:39] + "_" + product_uuid,
-                    "est": (datetime.utcnow() +
-                            timedelta(
-                        seconds=unprocessed_products.index(product)*10)
-                    ).isoformat('T', timespec='seconds') + 'Z'}
-                   for (product, product_uuid) in
-                   [(product, str(uuid.uuid4()))
-                    for product in unprocessed_products
-                    ]
-                   ],
-                  "proceed": event["proceed"]
-                  }
+        output = listL3Action(event, product_database)
     elif (event["action"] == "select"):
-        selected_products = [
-            product for product in product_database.l3_src_products if product.id == event["product-id"]]
-
-        if (len(selected_products) == 0):
-            msg = "No product for id " + str(event["product-id"])
-            logging.error(msg)
-            return {
-                'statusCode': 400,
-                'body': msg
-            }
-
-        selected_product = selected_products[0]
-        logging.info("Planning on processing: {}".format(
-            selected_product.name))
-
-        names = SrcDistName(product_database, selected_product,
-                            event["bucket"], event["uuid"])
-        step_function_action = StepFunctionAction(
-            selected_product, names, event["uuid"])
-        json_output = step_function_action.run_step_function()
-
-        output = {**event, **json_output}
+        output = selectL3Action(event, product_database)
 
     elif (event["action"] == "save"):
-        selected_products = [
-            product for product in product_database.l3_src_products if product.id == event["product-id"]]
-
-        if (len(selected_products) == 0):
-            msg = "No product for id " + str(event["product-id"])
-            logging.error(msg)
-            return {
-                'statusCode': 400,
-                'body': msg
-            }
-
-        selected_product = selected_products[0]
-        logging.info("Planning on processing: {}".format(
-            selected_product.name))
-
-        names = SrcDistName(product_database, selected_product,
-                            event["bucket"], event["uuid"])
-        update_database_action = UpdateDatabaseAction(
-            selected_product, event["cat-url"], token, names)
-        update_database_action.update()
-        output = "Success"
+        output = saveL3Action(event, product_database, token)
 
     return {
         'statusCode': 200,
         'body': output
     }
+
+
+def listL3Action(event, product_database):
+    logging.info("Found {} source products".format(len(
+        [product.id for product in product_database.l3_src_products])))
+
+    logging.info("Found {} products that have been processed".format(len(
+        [product.source_product.id for product in product_database.l3_dist_products])))
+
+    processed_product_ids = [product.source_product.id
+                             for product in product_database.l3_dist_products]
+
+    unprocessed_products = [
+        product for product in product_database.l3_src_products if product.id not in processed_product_ids
+    ]
+
+    logging.info("Planning on processing {} products".format(
+        len(unprocessed_products)))
+
+    logging.info("Planning on processing: {}".format(" \n".join(
+        [product.name for product in unprocessed_products])))
+
+    output = {"product-ids":
+              [{"product-id": product.id,
+                  "uuid": product_uuid,
+                  "cat-url": event["cat-url"],
+                  "bucket": event["bucket"],
+                  "build-name": re.sub("[^a-zA-Z0-9]", "_", product.name)[0:39] + "_" + product_uuid,
+                  "est": (datetime.utcnow() +
+                          timedelta(
+                      seconds=unprocessed_products.index(product)*10)
+                  ).isoformat('T', timespec='seconds') + 'Z'}
+               for (product, product_uuid) in
+               [(product, str(uuid.uuid4()))
+                for product in unprocessed_products]
+               ],
+              "proceed": event["proceed"]
+              }
+    return output
+
+
+def selectL3Action(event, product_database):
+    selected_products = [
+        product for product in product_database.l3_src_products if product.id == event["product-id"]]
+
+    if (len(selected_products) == 0):
+        msg = "No product for id " + str(event["product-id"])
+        logging.error(msg)
+        return {
+            'statusCode': 400,
+            'body': msg
+        }
+
+    selected_product = selected_products[0]
+    logging.info("Planning on processing: {}".format(
+        selected_product.name))
+
+    names = SrcDistName(product_database, selected_product,
+                        event["bucket"], event["uuid"])
+    step_function_action = StepFunctionAction(
+        selected_product, names, event["uuid"])
+    json_output = step_function_action.run_step_function()
+
+    output = {**event, **json_output}
+    return output
+
+
+def saveL3Action(event, product_database, token):
+    selected_products = [
+        product for product in product_database.l3_src_products if product.id == event["product-id"]]
+
+    if (len(selected_products) == 0):
+        msg = "No product for id " + str(event["product-id"])
+        logging.error(msg)
+        return {
+            'statusCode': 400,
+            'body': msg
+        }
+
+    selected_product = selected_products[0]
+    logging.info("Planning on processing: {}".format(
+        selected_product.name))
+
+    names = SrcDistName(product_database, selected_product,
+                        event["bucket"], event["uuid"])
+    update_database_action = UpdateDatabaseAction(
+        selected_product, event["cat-url"], token, names)
+    update_database_action.update()
+    output = "Success"
+    return output
 
 
 # Main is only called when testing/debugging

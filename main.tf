@@ -31,6 +31,15 @@ module "filesystem" {
 
 }
 
+module "ec2" {
+  source        = "./ec2"
+  env           = local.env
+  aws_region    = var.aws_region
+  caris_ami     = var.caris_ami
+  caris_ec2_iip = module.ancillary.caris_ec2_iip
+  caris_sg      = module.networking.caris_sg
+}
+
 module "compute" {
   source = "./compute"
 
@@ -59,11 +68,13 @@ module "pipelines" {
   aws_ecs_task_definition_mbsystem_arn = module.compute.aws_ecs_task_definition_mbsystem_arn
   aws_ecs_task_definition_pdal_arn     = module.compute.aws_ecs_task_definition_pdal_arn
   pipeline_ecs_subnet                  = local.pipeline_ecs_subnet
+  aws_instance_caris                   = module.ec2.aws_instance_caris
 
   aws_ecs_task_definition_caris_version_arn = module.compute.aws_ecs_task_definition_caris-version_arn
   aws_ecs_task_definition_startstopec2_arn  = module.compute.aws_ecs_task_definition_startstopec2_arn
   local_storage_folder                      = var.local_storage_folder
   region                                    = var.aws_region
+  prod_data_s3_account_canonical_id         = var.prod_data_s3_account_canonical_id
 }
 
 
@@ -88,6 +99,27 @@ module "get_resume_lambda_function" {
   role_cloudwatch_logs = true
 }
 
+
+module "process_l2_functions" {
+  source = "git@github.com:ausseabed/terraform-aws-lambda-builder.git"
+
+  # Standard aws_lambda_function attributes.
+  function_name = "ga_sb_${local.env}-process-l2-functions"
+  handler       = "process_l2_functions.lambda_handler"
+  runtime       = "python3.6"
+  timeout       = 30
+  role          = module.ancillary.process_l2_role
+  create_role   = true
+  enabled       = true
+
+  # Enable build functionality.
+  build_mode = "FILENAME"
+  source_dir = "${path.module}/src/lambda/process_l2_functions"
+  filename   = "./lambda_compiler_out/process_l2_functions.py"
+
+  # Create and use a role with CloudWatch Logs permissions.
+  role_cloudwatch_logs = true
+}
 
 module "identify_instrument_lambda_function" {
   source = "github.com/ausseabed/terraform-aws-lambda-builder"

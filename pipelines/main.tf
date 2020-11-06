@@ -17,7 +17,9 @@ locals {
     "aws_ecs_task_definition_pdal_arn"          = var.aws_ecs_task_definition_pdal_arn
     "aws_ecs_task_definition_caris_version_arn" = var.aws_ecs_task_definition_caris_version_arn
     "aws_ecs_task_definition_startstopec2_arn"  = var.aws_ecs_task_definition_startstopec2_arn
+    "instance_id"                               = var.aws_instance_caris
     "local_storage_folder"                      = var.local_storage_folder
+    "prod_data_s3_account_canonical_id"         = var.prod_data_s3_account_canonical_id
     "aws_step_function_process_l3_name"         = "ga-sb-${var.env}-ausseabed-processing-pipeline-l3"
     "steps" = ["Get caris version", "data quality check", "prepare change vessel config file", "Create HIPS file",
       "Import to HIPS", "Upload checkpoint 1 to s3", "Import HIPS From Auxiliary", "Upload checkpoint 2 to s3",
@@ -45,21 +47,17 @@ resource "aws_sfn_state_machine" "update-l3-warehouse" {
   definition = templatefile("${path.module}/step_functions/update_L3_warehouse.asl.json", local.pipeline_vars)
 }
 
+resource "aws_sfn_state_machine" "ausseabed-processing-pipeline-l2" {
+  name     = "ga-sb-${var.env}-ausseabed-processing-pipeline-l2"
+  role_arn = var.ausseabed_sm_role
+
+  definition = templatefile("${path.module}/step_functions/process_L2.asl.json", local.pipeline_vars)
+}
+
 //resource "aws_sfn_state_machine" "ausseabed-build-l0-sfn" {
 //  name     = "ga-sb-${var.env}-ausseabed-build-l0-sfn"
 //  role_arn = var.ausseabed_sm_role
 //
 //  definition = templatefile("${path.module}/build_L0_coverage.asl.json",local.pipeline_vars)
 //}
-//
-//resource "aws_sfn_state_machine" "ausseabed-processing-pipeline_sfn_state_machine-ga" {
-//  name     = "ga-sb-${var.env}-ausseabed-processing-pipeline-ga"
-//  role_arn = var.ausseabed_sm_role
-//  definition = templatefile("${path.module}/ga_processing_pipeline.asl.json",local.pipeline_vars)
-//}
-//
-//resource "aws_sfn_state_machine" "ausseabed-processing-pipeline_sfn_state_machine-csiro" {
-//  name     = "ga-sb-${var.env}-ausseabed-processing-pipeline-csiro"
-//  role_arn = var.ausseabed_sm_role
-//  definition = templatefile("${path.module}/csiro_processing_pipeline.asl.json", local.pipeline_vars)
-//}
+

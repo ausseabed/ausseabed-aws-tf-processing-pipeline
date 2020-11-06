@@ -54,7 +54,8 @@ resource "aws_iam_role_policy" "ga_sb_pp_sfn_policy" {
             "Resource": [
                 "arn:aws:lambda:${var.region}:${local.account_id}:function:getResumeFromStep:$LATEST",
                 "arn:aws:lambda:${var.region}:${local.account_id}:function:ga_sb_${var.env}_identify_instrument_files:$LATEST",
-                "arn:aws:lambda:${var.region}:${local.account_id}:function:ga_sb_${var.env}_identify_unprocessed_grids:$LATEST"
+                "arn:aws:lambda:${var.region}:${local.account_id}:function:ga_sb_${var.env}_identify_unprocessed_grids:$LATEST",
+                "arn:aws:lambda:${var.region}:${local.account_id}:function:ga_sb_${var.env}-process-l2-functions:$LATEST"
             ]
         },
         {
@@ -305,6 +306,119 @@ resource "aws_iam_instance_profile" "ec2_instance_s3_profile" {
   role = aws_iam_role.ec2_instance_s3.name
 }
 
+resource "aws_iam_role" "process_l2_role-lambda-role" {
+  name = "ga_sb_${var.env}-process_l2_role-lambda-role"
+
+  assume_role_policy = <<DOC
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "lambda.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+DOC
+}
+
+
+resource "aws_iam_role_policy" "process_l2_role-lambda-role-policy" {
+  name   = "ga_sb_${var.env}-process-l2-functions"
+  role   = aws_iam_role.process_l2_role-lambda-role.id
+  policy = <<DOC
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "forCloudwatch",
+            "Effect": "Allow",
+            "Action": [
+              "logs:CreateLogGroup",
+              "logs:CreateLogDelivery",
+              "logs:GetLogDelivery",
+              "logs:UpdateLogDelivery",
+              "logs:ListLogDeliveries",
+              "logs:PutResourcePolicy",
+              "logs:DescribeResourcePolicies",
+              "logs:DescribeLogGroups"
+            ],
+            "Resource": "arn:aws:logs:${var.region}:${local.account_id}:*"
+        },
+        {
+            "Sid": "forCloudtrail",
+            "Effect": "Allow",
+            "Action": [
+                "logs:CreateLogStream",
+                "logs:PutLogEvents"
+            ],
+            "Resource": "arn:aws:logs:${var.region}:${local.account_id}:log-group:/aws/lambda/ga_sb_${var.env}*"
+        },
+        {
+            "Sid": "GAS3ReadWrite",
+            "Action": [
+                "s3:Get*",
+                "s3:List*",
+                "s3:PutObj*"
+            ],
+            "Resource": "*",
+            "Effect": "Allow"
+        },
+        {
+            "Sid": "StartStopEc2Lambda",
+            "Effect": "Allow",
+            "Action": [
+                "ec2:StartInstances",
+                "ec2:StopInstances",
+                "ec2:CreateTags",
+                "ssm:SendCommand"
+            ],
+            "Resource": "arn:aws:ec2:${var.region}:${local.account_id}:instance/*"
+        },
+        {
+            "Sid": "SSMRunCommands",
+            "Effect": "Allow",
+            "Action": [
+                "ssm:*"
+            ],
+            "Resource": "arn:aws:ssm:${var.region}::document/AWS-*"
+        },
+        {
+          "Effect":"Allow",
+          "Action":[
+            "ssm:UpdateInstanceInformation",
+            "ssm:ListCommands",
+            "ssm:ListCommandInvocations",
+            "ssm:GetDocument",
+            "ssm:GetParametersByPath",
+            "ssm:GetParameter"
+          ],
+          "Resource":"*"
+        },
+        {
+          "Effect":"Allow",
+          "Action": [
+            "states:SendTaskSuccess"
+          ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "StartStopEc2LambdaFindInstance",
+            "Effect": "Allow",
+            "Action": [
+                "ec2:DescribeInstances"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
+DOC
+}
+
 
 resource "aws_iam_role" "identify_instrument_files-lambda-role" {
   name = "ga_sb_${var.env}_id_instrument_files-lambda-role"
@@ -327,7 +441,7 @@ DOC
 }
 
 resource "aws_iam_role_policy" "identify_instrument_files-lambda-role-policy" {
-  name   = "ga_sb_${var.env}_idy_instrument_files-policy"
+  name   = "ga_sb_${var.env}_id_instrument_files-policy"
   role   = aws_iam_role.identify_instrument_files-lambda-role.id
   policy = <<DOC
 {
@@ -355,7 +469,7 @@ resource "aws_iam_role_policy" "identify_instrument_files-lambda-role-policy" {
                 "logs:CreateLogStream",
                 "logs:PutLogEvents"
             ],
-            "Resource": "arn:aws:logs:${var.region}:${local.account_id}:log-group:/aws/lambda/ga_sb_${var.env}_identify_unprocessed_grids:*"
+            "Resource": "arn:aws:logs:${var.region}:${local.account_id}:log-group:/aws/lambda/ga_sb_${var.env}*"
         },
         {
             "Sid": "forStepFunctions",
@@ -389,6 +503,23 @@ resource "aws_iam_role_policy" "identify_instrument_files-lambda-role-policy" {
             "Resource": [
                 "arn:aws:secretsmanager:${var.region}:${local.account_id}:secret:wh-infra.auto.tfvars*"
             ]
+        },
+        {
+            "Sid": "StartStopEc2Lambda",
+            "Effect": "Allow",
+            "Action": [
+                "ec2:StartInstances",
+                "ec2:StopInstances"
+            ],
+            "Resource": "arn:aws:ec2:${var.region}:${local.account_id}:instance/*"
+        },
+        {
+            "Sid": "StartStopEc2LambdaFindInstance",
+            "Effect": "Allow",
+            "Action": [
+                "ec2:DescribeInstances"
+            ],
+            "Resource": "*"
         }
     ]
 }
@@ -454,3 +585,139 @@ resource "aws_iam_role_policy" "getResumeFromStep-lambda-role-policy" {
 }
 DOC
 }
+
+resource "aws_iam_instance_profile" "caris_ec2_iip" {
+  name = "ga_sb_${var.env}_caris_ec2_aws_iam_instance_profile"
+  role = aws_iam_role.caris_ec2_role.name
+}
+
+resource "aws_iam_role" "caris_ec2_role" {
+  name = "ga_sb_${var.env}_caris_ec2_role"
+
+  assume_role_policy = <<DOC
+{
+   "Version":"2012-10-17",
+   "Statement":[
+      {
+         "Effect":"Allow",
+         "Principal":{
+            "Service":"ec2.amazonaws.com"
+         },
+         "Action":"sts:AssumeRole"
+      }
+   ]
+}
+DOC
+}
+
+
+resource "aws_iam_role_policy_attachment" "caris_ec2_cloudwatch_agent" {
+  role       = aws_iam_role.caris_ec2_role.id
+  policy_arn = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+}
+
+resource "aws_iam_role_policy" "caris_ec2" {
+  name = "ga_sb_${var.env}_caris_ec2_role_policy"
+  role = aws_iam_role.caris_ec2_role.id
+
+  policy = <<DOC
+{
+"Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ssm:DescribeAssociation",
+                "ssm:GetDeployablePatchSnapshotForInstance",
+                "ssm:GetDocument",
+                "ssm:DescribeDocument",
+                "ssm:GetManifest",
+                "ssm:GetParameter",
+                "ssm:GetParameters",
+                "ssm:ListAssociations",
+                "ssm:ListInstanceAssociations",
+                "ssm:PutInventory",
+                "ssm:PutComplianceItems",
+                "ssm:PutConfigurePackageResult",
+                "ssm:UpdateAssociationStatus",
+                "ssm:UpdateInstanceAssociationStatus",
+                "ssm:UpdateInstanceInformation"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ssmmessages:CreateControlChannel",
+                "ssmmessages:CreateDataChannel",
+                "ssmmessages:OpenControlChannel",
+                "ssmmessages:OpenDataChannel"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ec2messages:AcknowledgeMessage",
+                "ec2messages:DeleteMessage",
+                "ec2messages:FailMessage",
+                "ec2messages:GetEndpoint",
+                "ec2messages:GetMessages",
+                "ec2messages:SendReply"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "GAS3Read",
+            "Action": [
+                "s3:Get*",
+                "s3:List*",
+                "s3:PutObj*"
+            ],
+            "Resource": "*",
+            "Effect": "Allow"
+        },
+        {
+            "Sid": "forCloudwatch",
+            "Effect": "Allow",
+            "Action": [
+              "logs:CreateLogGroup",
+              "logs:CreateLogDelivery",
+              "logs:GetLogDelivery",
+              "logs:UpdateLogDelivery",
+              "logs:ListLogDeliveries",
+              "logs:PutResourcePolicy",
+              "logs:DescribeResourcePolicies",
+              "logs:DescribeLogGroups"
+            ],
+            "Resource": "arn:aws:logs:${var.region}:${local.account_id}:*"
+        },
+        {
+            "Sid": "forCloudtrail",
+            "Effect": "Allow",
+            "Action": [
+                "logs:CreateLogStream",
+                "logs:PutLogEvents"
+            ],
+            "Resource": "arn:aws:logs:${var.region}:${local.account_id}:*"
+        },
+        {
+            "Sid": "CarisUser",
+            "Effect": "Allow",
+            "Action": [
+                "secretsmanager:*"
+            ],
+            "Resource": "arn:aws:secretsmanager:${var.region}:${local.account_id}:secret:ga-sb-caris-user-credentials-*"
+        },
+        {
+          "Effect":"Allow",
+          "Action": [
+            "states:SendTaskSuccess"
+          ],
+            "Resource": "*"
+        }
+    ]
+}
+DOC
+}
+

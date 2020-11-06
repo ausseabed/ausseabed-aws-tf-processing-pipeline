@@ -9,6 +9,7 @@ variable "aws_region" {}
 
 variable "local_storage_folder" {}
 
+variable "caris_ami" {}
 #-------compute variables
 
 variable "fargate_cpu" {}
