@@ -53,7 +53,7 @@
                   "ErrorEquals": [
                     "ECS.AmazonECSException"
                   ],
-                  "IntervalSeconds": 3,
+                  "IntervalSeconds": 4,
                   "MaxAttempts": 5
                 }
               ],
