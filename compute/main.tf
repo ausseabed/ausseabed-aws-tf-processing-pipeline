@@ -3,8 +3,8 @@
 
 data "aws_ecs_cluster" "main" {
   cluster_name = "ga_sb_${var.env}_ecs_cluster"
-
 }
+
 data "aws_caller_identity" "current" {}
 
 resource "aws_ecs_task_definition" "caris-version" {
@@ -241,6 +241,37 @@ resource "aws_ecs_task_definition" "pdal" {
     "image": "${var.pdal_image}",
     "memory": ${var.fargate_memory},
     "name": "pdal",
+    "networkMode": "awsvpc",
+    "portMappings": []
+  }
+]
+DEFINITION
+}
+
+resource "aws_ecs_task_definition" "surveyzip" {
+  family       = "surveyzip"
+  network_mode = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+  cpu                = var.fargate_cpu
+  memory             = var.fargate_memory
+  execution_role_arn = var.ecs_task_execution_role_arn
+  task_role_arn      = var.ecs_task_execution_role_arn
+
+  container_definitions = <<DEFINITION
+[
+  { "logConfiguration": {
+        "logDriver": "awslogs",
+        "secretOptions": null,
+        "options": {
+          "awslogs-group": "/ecs/ga_sb_${var.env}_surveyzip",
+          "awslogs-region": "ap-southeast-2",
+          "awslogs-stream-prefix": "surveyzip"
+        }
+      },
+    "cpu": ${var.fargate_cpu},
+    "image": "${var.surveyzip_image}",
+    "memory": ${var.fargate_memory},
+    "name": "surveyzip",
     "networkMode": "awsvpc",
     "portMappings": []
   }

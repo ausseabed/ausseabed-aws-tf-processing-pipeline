@@ -15,6 +15,7 @@ locals {
     "aws_ecs_task_definition_caris_subnet"      = var.pipeline_ecs_subnet
     "aws_ecs_task_definition_mbsystem_arn"      = var.aws_ecs_task_definition_mbsystem_arn
     "aws_ecs_task_definition_pdal_arn"          = var.aws_ecs_task_definition_pdal_arn
+    "aws_ecs_task_definition_surveyzip_arn"     = var.aws_ecs_task_definition_surveyzip_arn
     "aws_ecs_task_definition_caris_version_arn" = var.aws_ecs_task_definition_caris_version_arn
     "aws_ecs_task_definition_startstopec2_arn"  = var.aws_ecs_task_definition_startstopec2_arn
     "instance_id"                               = var.aws_instance_caris
@@ -31,7 +32,6 @@ locals {
     "ecs_task_prefix" = "https://${var.region}.console.aws.amazon.com/ecs/home?region=${var.region}#/clusters/${var.aws_ecs_cluster_main.cluster_name}/tasks/{0}/details"
   }
 }
-
 
 resource "aws_sfn_state_machine" "ausseabed-processing-pipeline-l3" {
   name     = "ga-sb-${var.env}-ausseabed-processing-pipeline-l3"
@@ -60,4 +60,3 @@ resource "aws_sfn_state_machine" "ausseabed-processing-pipeline-l2" {
 //
 //  definition = templatefile("${path.module}/build_L0_coverage.asl.json",local.pipeline_vars)
 //}
-

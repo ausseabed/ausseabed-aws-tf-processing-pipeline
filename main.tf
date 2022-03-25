@@ -41,8 +41,7 @@ module "ec2" {
 }
 
 module "compute" {
-  source = "./compute"
-
+  source                            = "./compute"
   env                               = local.env
   fargate_cpu                       = var.fargate_cpu
   fargate_memory                    = var.fargate_memory
@@ -51,32 +50,30 @@ module "compute" {
   gdal_image                        = "${var.ecr_url}/${var.gdal_image}"
   mbsystem_image                    = "${var.ecr_url}/${var.mbsystem_image}"
   pdal_image                        = "${var.ecr_url}/${var.pdal_image}"
+  surveyzip_image                   = "${var.ecr_url}/${var.surveyzip_image}"
   gdal_efs                          = module.filesystem.gdal_efs
   ecs_task_execution_role_arn       = module.ancillary.ecs_task_execution_role_arn
   prod_data_s3_account_canonical_id = var.prod_data_s3_account_canonical_id
-
 }
 
-
 module "pipelines" {
-  source                               = "./pipelines"
-  env                                  = local.env
-  networking                           = module.networking
-  ausseabed_sm_role                    = module.ancillary.ga_sb_pp_sfn_role
-  aws_ecs_cluster_main                 = module.compute.aws_ecs_cluster_main
-  aws_ecs_task_definition_gdal_arn     = module.compute.aws_ecs_task_definition_gdal_arn
-  aws_ecs_task_definition_mbsystem_arn = module.compute.aws_ecs_task_definition_mbsystem_arn
-  aws_ecs_task_definition_pdal_arn     = module.compute.aws_ecs_task_definition_pdal_arn
-  pipeline_ecs_subnet                  = local.pipeline_ecs_subnet
-  aws_instance_caris                   = module.ec2.aws_instance_caris
-
+  source                                    = "./pipelines"
+  env                                       = local.env
+  networking                                = module.networking
+  ausseabed_sm_role                         = module.ancillary.ga_sb_pp_sfn_role
+  aws_ecs_cluster_main                      = module.compute.aws_ecs_cluster_main
+  aws_ecs_task_definition_gdal_arn          = module.compute.aws_ecs_task_definition_gdal_arn
+  aws_ecs_task_definition_mbsystem_arn      = module.compute.aws_ecs_task_definition_mbsystem_arn
+  aws_ecs_task_definition_pdal_arn          = module.compute.aws_ecs_task_definition_pdal_arn
+  aws_ecs_task_definition_surveyzip_arn     = module.compute.aws_ecs_task_definition_surveyzip_arn
+  pipeline_ecs_subnet                       = local.pipeline_ecs_subnet
+  aws_instance_caris                        = module.ec2.aws_instance_caris
   aws_ecs_task_definition_caris_version_arn = module.compute.aws_ecs_task_definition_caris-version_arn
   aws_ecs_task_definition_startstopec2_arn  = module.compute.aws_ecs_task_definition_startstopec2_arn
   local_storage_folder                      = var.local_storage_folder
   region                                    = var.aws_region
   prod_data_s3_account_canonical_id         = var.prod_data_s3_account_canonical_id
 }
-
 
 module "get_resume_lambda_function" {
   source = "git@github.com:ausseabed/terraform-aws-lambda-builder.git"
@@ -98,7 +95,6 @@ module "get_resume_lambda_function" {
   # Create and use a role with CloudWatch Logs permissions.
   role_cloudwatch_logs = true
 }
-
 
 module "process_l2_functions" {
   source = "git@github.com:ausseabed/terraform-aws-lambda-builder.git"
@@ -155,8 +151,8 @@ module "identify_unprocessed_grids_lambda_function" {
   enabled       = true
 
   # Enable build functionality.
-  build_mode = "LAMBDA"
-  source_dir = "${path.module}/src/lambda/identify_unprocessed_grids"
+  build_mode         = "LAMBDA"
+  source_dir         = "${path.module}/src/lambda/identify_unprocessed_grids"
   # filename   = "identify_unprocessed_grids.py"
   s3_bucket          = "ausseabed-processing-pipeline-${local.env}-support"
   compile_output_dir = "./lambda_compiler_out"
@@ -164,5 +160,3 @@ module "identify_unprocessed_grids_lambda_function" {
   # Create and use a role with CloudWatch Logs permissions.
   role_cloudwatch_logs = true
 }
-
-#carisbatch  --run FilterProcessedDepths   --filter-type SURFACE --surface ${var.local_storage_folder}\\GA-0364_BlueFin_MB\\BlueFin_2018-172_1m.csar --threshold-type STANDARD_DEVIATION --scalar 1.6 file:///${var.local_storage_folder}\\GA-0364_BlueFin_MB\\GA-0364_BlueFin_MB.hips

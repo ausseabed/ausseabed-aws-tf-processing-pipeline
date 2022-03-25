@@ -10,6 +10,7 @@ startstopec2_image = "288871573946.dkr.ecr.ap-southeast-2.amazonaws.com/callcari
 gdal_image = "ausseabed-gdal:latest"
 mbsystem_image = "ausseabed-mbsystem:latest"
 pdal_image = "ausseabed-pdal:latest"
+surveyzip_image = "ausseabed-surveyzip:latest"
 
 
 local_storage_folder="D:\\\\awss3bucket"

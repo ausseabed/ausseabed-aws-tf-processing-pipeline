@@ -7,6 +7,7 @@ variable "caris_caller_image" {}
 variable "gdal_image" {}
 variable "mbsystem_image" {}
 variable "pdal_image" {}
+variable "surveyzip_image" {}
 variable "startstopec2_image" {}
 variable "ecs_task_execution_role_arn" {}
 

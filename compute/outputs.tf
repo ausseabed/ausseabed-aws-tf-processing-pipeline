@@ -14,13 +14,14 @@ output "aws_ecs_task_definition_gdal_arn" {
   value = aws_ecs_task_definition.gdal.arn
 }
 
-
 output "aws_ecs_task_definition_mbsystem_arn" {
   value = aws_ecs_task_definition.mbsystem.arn
 }
-
 
 output "aws_ecs_task_definition_pdal_arn" {
   value = aws_ecs_task_definition.pdal.arn
 }
 
+output "aws_ecs_task_definition_surveyzip_arn" {
+  value = aws_ecs_task_definition.surveyzip.arn
+}
