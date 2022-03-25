@@ -28,6 +28,10 @@ resource "aws_cloudwatch_log_group" "containers" {
   }
 }
 
+resource "aws_cloudwatch_log_group" "surveyzip" {
+  name              = "/ecs/ga_sb_${var.env}_surveyzip"
+  retention_in_days = 365
+}
 
 resource "aws_cloudwatch_log_group" "lambda_function" {
   name = "/aws/lambda/ga_sb_${var.env}_identify_unprocessed_grids"
