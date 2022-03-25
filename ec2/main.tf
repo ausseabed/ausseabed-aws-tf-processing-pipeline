@@ -18,23 +18,26 @@ data "aws_subnet" "web_tier_subnet" {
 # in secrets manager
 resource "aws_instance" "app_tier_instance" {
   ami           = var.caris_ami
-  instance_type = "t2.medium"
+  instance_type = "t2.large"
   subnet_id     = data.aws_subnet.app_tier_subnet.id
 
   key_name               = "GaSbAllCarisL2Pipeline"
   iam_instance_profile   = var.caris_ec2_iip
   vpc_security_group_ids = [var.caris_sg]
+
   tags = {
     Name      = "ga-sb-${var.env}-caris-l2-pipeline"
     AgentRole = "pipeline"
   }
+
   root_block_device {
     volume_type = "gp2"
     volume_size = 30
   }
-  # lifecycle {
-  #   prevent_destroy = true
-  # }
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "aws_volume_attachment" "ebs_att" {
