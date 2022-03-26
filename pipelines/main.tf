@@ -54,6 +54,13 @@ resource "aws_sfn_state_machine" "ausseabed-processing-pipeline-l2" {
   definition = templatefile("${path.module}/step_functions/process_L2.asl.json", local.pipeline_vars)
 }
 
+resource "aws_sfn_state_machine" "survey-zip" {
+  name     = "ga-sb-${var.env}-update-survey-zip"
+  role_arn = var.ausseabed_sm_role
+
+  definition = templatefile("${path.module}/step_functions/update_survey_zip.asl.json", local.pipeline_vars)
+}
+
 //resource "aws_sfn_state_machine" "ausseabed-build-l0-sfn" {
 //  name     = "ga-sb-${var.env}-ausseabed-build-l0-sfn"
 //  role_arn = var.ausseabed_sm_role

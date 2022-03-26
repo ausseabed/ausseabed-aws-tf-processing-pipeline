@@ -1,0 +1,89 @@
+{
+  "Comment": "",
+  "StartAt": "Identify Survey Zip Files",
+  "States": {
+    "Identify Survey Zip Files": {
+      "Type": "Task",
+      "Next": "Confirm Proceed?",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "ResultPath": "$.data.lambdaresult",
+      "OutputPath": "$.data.lambdaresult.Payload.body",
+      "Parameters": {
+        "FunctionName": "arn:aws:lambda:${region}:${account_id}:function:${prefix}_identify_unprocessed_grids:$LATEST",
+        "Payload": {
+          "action": "zip",
+          "cat-url.$": "$.cat-url",
+          "bucket.$": "$.bucket",
+          "proceed.$": "$.proceed"
+        }
+      }
+    },
+    "Confirm Proceed?": {
+      "Comment": "Trial run, or should we do anything?",
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.proceed",
+          "BooleanEquals": true,
+          "Next": "Build Zip Files"
+        }
+      ],
+      "Default": "Do not proceed"
+    },
+    "Build Zip Files": {
+      "Type": "Map",
+      "ItemsPath": "$.zip-files",
+      "MaxConcurrency": 5,
+      "Next": "Final State",
+      "Iterator": {
+        "StartAt": "Build Zip",
+        "States": {
+          "Build Zip": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::ecs:runTask.sync",
+            "ResultPath": "$.previous_step__result",
+            "Parameters": {
+              "LaunchType": "FARGATE",
+              "PlatformVersion": "1.4.0",
+              "Cluster": "${aws_ecs_cluster_arn}",
+              "TaskDefinition": "${aws_ecs_task_definition_surveyzip_arn}",
+              "NetworkConfiguration": {
+                "AwsvpcConfiguration": {
+                  "AssignPublicIp": "ENABLED",
+                  "SecurityGroups": [
+                    "${aws_ecs_task_definition_caris_sg}"
+                  ],
+                  "Subnets": [
+                    "${aws_ecs_task_definition_caris_subnet}"
+                  ]
+                }
+              },
+              "Overrides": {
+                "ContainerOverrides": [
+                  {
+                    "Name": "surveyzip",
+                    "Command.$": "States.JsonToString($)"
+                  }
+                ]
+              }
+            },
+            "Next": "Finish Iteration",
+            "TimeoutSeconds": 60000
+          },
+          "Finish Iteration": {
+            "Type": "Pass",
+            "End": true
+          }
+        }
+      }
+    },
+    "Final State": {
+      "Type": "Pass",
+      "End": true
+    },
+    "Do not proceed": {
+      "Type": "Fail",
+      "Cause": "Set variable proceed to true to build data in warehouse"
+    }
+  }
+}
