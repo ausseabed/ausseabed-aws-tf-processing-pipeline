@@ -1,5 +1,7 @@
 import sys
 import os
+from collections import defaultdict
+
 import requests
 import logging
 import product_catalogue_py_rest_client
@@ -204,3 +206,34 @@ class ProductDatabase():
                 "Expecting to match product {} with survey".format(l3_product.id))
         else:
             return escape(format_string.format(self.base_names[l3_product.id]))
+
+    def retrieve_surveys_with_products(self):
+        products = dict(map(lambda product: (product.source_product.id, product), self.l3_dist_products))
+
+        survey_to_products = defaultdict(list)
+        for relation in self.survey_l3_relations:
+            survey_to_products[relation.survey_id].append(relation.product_id)
+
+        results = []
+        for survey in self.surveys:
+            if survey.id not in survey_to_products:
+                logging.warning('No products for survey: %s', survey.id)
+                continue
+
+            products_in_survey = []
+            for product_id in survey_to_products[survey.id]:
+                if product_id not in products:
+                    logging.warning('Product %s does not exist', product_id)
+                    continue
+
+                products_in_survey.append(products[product_id])
+
+            results.append({
+                'id': survey.id,
+                'name': survey.name,
+                'uuid': survey.uuid,
+                'year': survey.year,
+                'products': products_in_survey
+            })
+
+        return results
