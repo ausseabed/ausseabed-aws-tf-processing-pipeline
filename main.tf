@@ -160,8 +160,10 @@ module "identify_unprocessed_grids_lambda_function" {
   # Create and use a role with CloudWatch Logs permissions.
   role_cloudwatch_logs = true
 
-  environment {
-    FILES_BUCKET = "files.ausseabed.gov.au"
-    FILES_PREFIX = "survey/"
+  environment = {
+    variables = {
+      FILES_BUCKET = "files.ausseabed.gov.au"
+      FILES_PREFIX = "survey/"
+    }
   }
 }
