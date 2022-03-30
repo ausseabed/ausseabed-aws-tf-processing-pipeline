@@ -81,7 +81,7 @@ def lambda_handler(event, context):
     elif event["action"] == "save":
         output = saveL3Action(event, product_database, token)
     elif event['action'] == 'zip':
-        output = zip_compilations(event, product_database)
+        output = zip_surveys(event, product_database)
     else:
         raise Exception(f'Unknown action: ${event["action"]}')
 
@@ -90,7 +90,7 @@ def lambda_handler(event, context):
         'body': output
     }
 
-def zip_compilations(event, product_database):
+def zip_surveys(event, product_database):
     s3 = boto3.resource('s3')
 
     logging.info('zip_compilations invoked')
@@ -121,6 +121,7 @@ def zip_compilations(event, product_database):
 
         manifest = get_manifest(s3, files_bucket, files_prefix, manifest_filename)
         if manifest:
+            logger.info('Verifying %s manifest', survey['name'])
             etags = dict(map(lambda x: (x['filename'], x['eTag']), manifest))
 
             # If there's a mismatch in the number of files an update is required
