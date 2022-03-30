@@ -97,6 +97,9 @@ def zip_compilations(event, product_database):
     logging.info('zip_compilations invoked')
     logging.info(event)
 
+    files_bucket = event['files-bucket']
+    files_prefix = event['files-prefix']
+
     output = {
         'zip-files': [],
         'proceed': event['proceed']
@@ -117,7 +120,7 @@ def zip_compilations(event, product_database):
             logging.warning('Ignoring survey with no COGs: %s', survey['id'])
             continue
 
-        manifest = get_manifest(s3, manifest_filename)
+        manifest = get_manifest(s3, files_bucket, files_prefix, manifest_filename)
         if manifest:
             etags = dict(map(lambda x: (x['filename'], x['eTag']), manifest))
 
@@ -160,9 +163,9 @@ def zip_compilations(event, product_database):
 
     return output
 
-def get_manifest(s3, manifest_filename):
+def get_manifest(s3, files_bucket, files_prefix, manifest_filename):
     try:
-        manifest = s3.Object(os.environ['FILES_BUCKET'], os.environ['FILES_PREFIX'] + manifest_filename).get()
+        manifest = s3.Object(files_bucket, files_prefix + manifest_filename).get()
         return json.loads(manifest['Body'].read())
     except s3.meta.client.exceptions.NoSuchKey:
         return None

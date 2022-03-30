@@ -12,8 +12,8 @@
         "FunctionName": "arn:aws:lambda:${region}:${account_id}:function:${prefix}_identify_unprocessed_grids:$LATEST",
         "Payload": {
           "action": "zip",
-          "cat-url.$": "$.cat-url",
-          "bucket.$": "$.bucket",
+          "files-bucket.$": "$.files-bucket",
+          "files-prefix.$": "$.files-prefix",
           "proceed.$": "$.proceed"
         }
       }
