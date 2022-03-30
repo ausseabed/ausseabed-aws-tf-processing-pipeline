@@ -63,7 +63,7 @@
                 "ContainerOverrides": [
                   {
                     "Name": "surveyzip",
-                    "Command.$": "States.JsonToString($)"
+                    "Command.$": "States.Array(States.JsonToString($))"
                   }
                 ]
               }
