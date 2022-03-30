@@ -1,4 +1,5 @@
 #!/bin/bash
+pip install --upgrade pip
 pip install -t . msal python-json-logger requests boto3
 curl -L https://github.com/ausseabed/product-catalogue/archive/master.zip -o master.zip
 unzip master.zip 

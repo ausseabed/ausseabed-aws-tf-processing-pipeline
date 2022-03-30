@@ -286,6 +286,8 @@ if __name__ == "__main__":
     # event["action"] = "save"
     # event["product-id"] = 99
     event["cat-url"] = "https://catalogue.dev.ausseabed.gov.au/rest"
+    event["files-bucket"] = "files.ausseabed.gov.au"
+    event["files-prefix"] = "survey/"
     # event["uuid"] = "123"
     event["bucket"] = "ausseabed-public-bathymetry-nonprod"
     lambda_handler(event, context)
