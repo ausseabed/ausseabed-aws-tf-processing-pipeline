@@ -22,6 +22,9 @@ variable "aws_ecs_task_definition_caris_version_arn" {}
 variable "aws_ecs_task_definition_startstopec2_arn" {}
 variable "local_storage_folder" {}
 variable "pipeline_ecs_subnet" { type = string }
+variable "pipeline_ecs_app_subnets" {
+  type = list
+}
 
 variable "aws_instance_caris" {}
 

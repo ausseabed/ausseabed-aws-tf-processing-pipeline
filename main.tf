@@ -67,6 +67,7 @@ module "pipelines" {
   aws_ecs_task_definition_pdal_arn          = module.compute.aws_ecs_task_definition_pdal_arn
   aws_ecs_task_definition_surveyzip_arn     = module.compute.aws_ecs_task_definition_surveyzip_arn
   pipeline_ecs_subnet                       = local.pipeline_ecs_subnet
+  pipeline_ecs_app_subnets                  = module.networking.app_tier_subnets
   aws_instance_caris                        = module.ec2.aws_instance_caris
   aws_ecs_task_definition_caris_version_arn = module.compute.aws_ecs_task_definition_caris-version_arn
   aws_ecs_task_definition_startstopec2_arn  = module.compute.aws_ecs_task_definition_startstopec2_arn

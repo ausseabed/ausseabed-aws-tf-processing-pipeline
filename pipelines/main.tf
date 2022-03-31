@@ -13,6 +13,7 @@ locals {
     "aws_ecs_task_definition_gdal_arn"          = var.aws_ecs_task_definition_gdal_arn
     "aws_ecs_task_definition_caris_sg"          = var.networking.pipelines_sg
     "aws_ecs_task_definition_caris_subnet"      = var.pipeline_ecs_subnet
+    "aws_ecs_task_definition_app_subnets"       = var.pipeline_ecs_app_subnets
     "aws_ecs_task_definition_mbsystem_arn"      = var.aws_ecs_task_definition_mbsystem_arn
     "aws_ecs_task_definition_pdal_arn"          = var.aws_ecs_task_definition_pdal_arn
     "aws_ecs_task_definition_surveyzip_arn"     = var.aws_ecs_task_definition_surveyzip_arn
@@ -58,7 +59,7 @@ resource "aws_sfn_state_machine" "survey-zip" {
   name     = "ga-sb-${var.env}-update-survey-zip"
   role_arn = var.ausseabed_sm_role
 
-  definition = templatefile("${path.module}/step_functions/update_survey_zip.asl.json", local.pipeline_vars)
+  definition = templatefile("${path.module}/step_functions/update_survey_zip.asl.json.tftpl", local.pipeline_vars)
 }
 
 //resource "aws_sfn_state_machine" "ausseabed-build-l0-sfn" {
