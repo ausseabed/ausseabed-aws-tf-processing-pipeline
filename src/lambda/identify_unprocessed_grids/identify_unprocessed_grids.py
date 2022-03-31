@@ -1,5 +1,6 @@
 import json
 import logging
+import math
 import re
 import uuid
 from datetime import datetime
@@ -46,6 +47,8 @@ The actions that are handled include:
 - zip - lists all the products that need a compilation zip created/updated
 
 """
+
+RESOLUTION_REGEX = re.compile(r"^(?P<min>\d*\.?\d+)m?(?:.*?)?(?P<max>\d*\.?\d+)?m?$")
 
 
 def lambda_handler(event, context):
@@ -107,17 +110,21 @@ def zip_surveys(event, product_database):
     for survey in product_database.retrieve_surveys_with_products():
         needs_update = False
 
-        zip_filename = f'{survey["name"].strip()} - {survey["year"].strip()}.zip'
-        zip_filename = re.sub(r'[\\/:*?\"<>|]', '_', zip_filename)
-        manifest_filename = f'{zip_filename}.manifest'
-
+        resolutions = set()
         cogs = []
+
         for product in survey['products']:
+            resolutions.add(product.source_product.resolution)
             cogs.append(product.bathymetry_location)
 
         if not cogs:
             logging.warning('Ignoring survey with no COGs: %s', survey['id'])
             continue
+
+        resolution_text = extract_resolution_text(resolutions)
+        zip_filename = f'{survey["name"].strip()} {survey["year"].strip()} {resolution_text}.zip'
+        zip_filename = re.sub(r'[\\/:*?\"<>|]', '_', zip_filename)
+        manifest_filename = f'{zip_filename}.manifest'
 
         manifest = get_manifest(s3, files_bucket, files_prefix, manifest_filename)
         if manifest:
@@ -144,7 +151,7 @@ def zip_surveys(event, product_database):
                         etag = get_etag(s3, cog)
 
                         if not etag:
-                            logging.error('Failed to find an eTag for %s, the file may no longer exist', cog)
+                            logging.error('Failed to find an eTag for %s, the COG may no longer exist', cog)
                             continue
 
                         if etags[filename] != etag:
@@ -162,6 +169,25 @@ def zip_surveys(event, product_database):
             })
 
     return output
+
+def extract_resolution_text(resolutions):
+    min_resolution = math.inf
+    max_resolution = -math.inf
+
+    for resolution in resolutions:
+        match = RESOLUTION_REGEX.match(resolution)
+        if match:
+            min_resolution = min(min_resolution, float(match['min']))
+            if match['max']:
+                max_resolution = max(max_resolution, float(match['max']))
+
+    if max_resolution > -math.inf and not math.isclose(min_resolution, max_resolution):
+        return f'{format_resolution(min_resolution)}m - {format_resolution(max_resolution)}m'
+
+    return f'{format_resolution(min_resolution)}m'
+
+def format_resolution(resolution):
+    return '{:.1f}'.format(resolution).rstrip('0').rstrip('.')
 
 def get_manifest(s3, files_bucket, files_prefix, manifest_filename):
     try:
