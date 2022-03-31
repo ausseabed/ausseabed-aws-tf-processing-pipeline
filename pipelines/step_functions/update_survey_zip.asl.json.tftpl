@@ -54,7 +54,7 @@
                   "SecurityGroups": [
                     "${aws_ecs_task_definition_caris_sg}"
                   ],
-                  "Subnets": ${jsonencode(ws_ecs_task_definition_app_subnets)}
+                  "Subnets": ${jsonencode(aws_ecs_task_definition_app_subnets)}
                 }
               },
               "Overrides": {
