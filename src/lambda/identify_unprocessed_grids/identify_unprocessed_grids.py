@@ -165,7 +165,8 @@ def zip_surveys(event, product_database):
             output['zip-files'].append({
                 'surveyId': survey['id'],
                 'filename': zip_filename,
-                'cogs': cogs
+                'cogs': cogs,
+                'metadata': survey['products'][0].source_product.metadata_persistent_id
             })
 
     return output
