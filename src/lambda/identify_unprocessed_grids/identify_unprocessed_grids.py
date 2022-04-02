@@ -103,6 +103,8 @@ def zip_surveys(event, product_database):
 
     output = {
         'zip-files': [],
+        'files-bucket': event['files-bucket'],
+        'files-prefix': event['files-prefix'],
         'proceed': event['proceed']
     }
 
