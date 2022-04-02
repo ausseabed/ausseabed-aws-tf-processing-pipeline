@@ -5,7 +5,6 @@ import re
 import uuid
 from datetime import datetime
 from datetime import timedelta
-from os.path import basename
 from urllib.parse import urlparse
 
 import boto3

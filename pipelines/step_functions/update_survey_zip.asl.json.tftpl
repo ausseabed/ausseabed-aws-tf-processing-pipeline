@@ -61,7 +61,17 @@
                 "ContainerOverrides": [
                   {
                     "Name": "surveyzip",
-                    "Command.$": "States.Array(States.JsonToString($))"
+                    "Command.$": "States.Array(States.JsonToString($))",
+                    "Environment": [
+                      {
+                        "Name": "OUTPUT_BUCKET",
+                        "Value.$": "$.files-bucket"
+                      },
+                      {
+                        "Name": "OUTPUT_PREFIX",
+                        "Value.$": "$.files-prefix"
+                      }
+                    ]
                   }
                 ]
               }
