@@ -33,8 +33,9 @@
     },
     "Build Zip Files": {
       "Type": "Map",
+      "InputPath": "$",
       "ItemsPath": "$.zip-files",
-      "MaxConcurrency": 5,
+      "MaxConcurrency": 10,
       "Next": "Final State",
       "Iterator": {
         "StartAt": "Build Zip",

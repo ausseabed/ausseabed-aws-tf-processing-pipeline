@@ -223,7 +223,7 @@ class ProductDatabase():
             products_in_survey = []
             for product_id in survey_to_products[survey.id]:
                 if product_id not in products:
-                    logging.warning('Product %s does not exist for survey :%s', product_id, survey.id)
+                    logging.warning('Product %s does not exist for survey: %s', product_id, survey.id)
                     continue
 
                 products_in_survey.append(products[product_id])
