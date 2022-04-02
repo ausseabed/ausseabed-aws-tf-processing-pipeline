@@ -129,33 +129,32 @@ def zip_surveys(event, product_database):
         manifest = get_manifest(s3, files_bucket, files_prefix, manifest_filename)
         if manifest:
             logger.info('Verifying %s manifest', survey['name'])
-            etags = dict(map(lambda x: (x['filename'], x['eTag']), manifest))
+            etags = dict(map(lambda x: (x['location'], x['eTag']), manifest))
 
             # If there's a mismatch in the number of files an update is required
             if len(cogs) != len(etags):
                 needs_update = True
             else:
                 # If the manifest filenames don't match an update is required
-                manifest_filenames = set(etags.keys())
-                cog_filenames = set(list(map(lambda x: basename(x), cogs)))
+                manifest_locations = set(etags.keys())
+                cog_locations = set(cogs)
 
-                if manifest_filenames != cog_filenames:
+                if manifest_locations != cog_locations:
                     logging.info('Filenames in the manifest no longer match, update required')
-                    logging.debug(manifest_filenames)
-                    logging.debug(cog_filenames)
+                    logging.debug(manifest_locations)
+                    logging.debug(cog_locations)
                     needs_update = True
                 else:
                     # If any eTags have changed an update is required
                     for cog in cogs:
-                        filename = basename(cog)
                         etag = get_etag(s3, cog)
 
                         if not etag:
                             logging.error('Failed to find an eTag for %s, the COG may no longer exist', cog)
                             continue
 
-                        if etags[filename] != etag:
-                            logging.info('Manifest eTag %s does not match COG eTag %s, update required', etags[filename], etag)
+                        if etags[cog] != etag:
+                            logging.info('Manifest eTag %s does not match COG eTag %s, update required', etags[cog], etag)
                             needs_update = True
                             break
         else:
