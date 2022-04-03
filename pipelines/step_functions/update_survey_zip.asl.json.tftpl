@@ -37,6 +37,11 @@
       "ItemsPath": "$.zip-files",
       "MaxConcurrency": 10,
       "Next": "Final State",
+      "Parameters": {
+        "zip.$": "$$.Map.Item.Value",
+        "files-bucket.$": "$.files-bucket",
+        "files-prefix.$": "$.files-prefix"
+      },
       "Iterator": {
         "StartAt": "Build Zip",
         "States": {
@@ -62,7 +67,7 @@
                 "ContainerOverrides": [
                   {
                     "Name": "surveyzip",
-                    "Command.$": "States.Array(States.JsonToString($))",
+                    "Command.$": "States.Array(States.JsonToString($.zip))",
                     "Environment": [
                       {
                         "Name": "OUTPUT_BUCKET",
