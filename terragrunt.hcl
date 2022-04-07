@@ -31,8 +31,9 @@ locals {
 }
 
 inputs = {
-  env     = local.env
-  ecr_url = local.ecr_url
+  env          = local.env
+  ecr_url      = local.ecr_url
+  files_bucket = local.files_bucket
 }
 
 terraform {
