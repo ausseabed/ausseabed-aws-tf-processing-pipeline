@@ -81,9 +81,10 @@ resource "aws_iam_role_policy" "ga_sb_pp_sfn_policy" {
                 "states:StartExecution"
             ],
             "Resource": [
-                "arn:aws:states:${var.region}:${local.account_id}:stateMachine:ga-sb-${var.env}-ausseabed-processing-pipeline-l3"
+                "arn:aws:states:${var.region}:${local.account_id}:stateMachine:ga-sb-${var.env}-ausseabed-processing-pipeline-l3",
+                "arn:aws:states:${var.region}:${local.account_id}:stateMachine:ga-sb-${var.env}-update-survey-zip"
             ]
-        },        
+        },
         {
             "Effect": "Allow",
             "Action": [
