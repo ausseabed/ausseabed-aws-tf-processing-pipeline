@@ -123,7 +123,7 @@
           "cat-url.$": "$.cat-url",
           "files-bucket": "${files_bucket}",
           "files-prefix": "survey/",
-          "proceed": "$.proceed"
+          "proceed.$": "$.proceed"
         },
         "StateMachineArn": "arn:aws:states:${region}:${account_id}:stateMachine:${aws_step_function_update_survey_zip}"
       },
