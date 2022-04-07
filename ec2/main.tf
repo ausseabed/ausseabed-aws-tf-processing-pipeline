@@ -18,7 +18,7 @@ data "aws_subnet" "web_tier_subnet" {
 # in secrets manager
 resource "aws_instance" "app_tier_instance" {
   ami           = var.caris_ami
-  instance_type = "t2.large"
+  instance_type = var.env == "prod" ? "t2.medium" : "t2.large"
   subnet_id     = data.aws_subnet.app_tier_subnet.id
 
   key_name               = "GaSbAllCarisL2Pipeline"
