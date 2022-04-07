@@ -27,3 +27,8 @@ variable "prod_data_s3_account_canonical_id" {
   type        = string
   description = "account number for cross-account permissions"
 }
+
+variable "files_bucket" {
+  description = "Bucket containing survey zip files"
+  type        = string
+}

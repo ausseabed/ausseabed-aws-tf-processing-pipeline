@@ -29,3 +29,8 @@ variable "pipeline_ecs_app_subnets" {
 variable "aws_instance_caris" {}
 
 variable "prod_data_s3_account_canonical_id" {}
+
+variable "files_bucket" {
+  description = "Bucket containing survey zip files"
+  type        = string
+}

@@ -74,6 +74,7 @@ module "pipelines" {
   local_storage_folder                      = var.local_storage_folder
   region                                    = var.aws_region
   prod_data_s3_account_canonical_id         = var.prod_data_s3_account_canonical_id
+  files_bucket                              = var.files_bucket
 }
 
 module "get_resume_lambda_function" {

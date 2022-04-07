@@ -7,7 +7,6 @@
       "Next": "Confirm Proceed?",
       "Resource": "arn:aws:states:::lambda:invoke",
       "ResultPath": "$.data.lambdaresult",
-      "OutputPath": "$.data.lambdaresult.Payload.body",
       "Parameters": {
         "FunctionName": "arn:aws:lambda:${region}:${account_id}:function:${prefix}_identify_unprocessed_grids:$LATEST",
         "Payload": {
@@ -32,9 +31,10 @@
     },
     "Build Warehouse": {
       "Type": "Map",
-      "ItemsPath": "$.product-ids",
+      "ItemsPath": "$.data.product-ids",
+      "ResultPath": "$.build-warehouse-results",
       "MaxConcurrency": 20,
-      "Next": "Final State",
+      "Next": "Update Survey Zips",
       "Iterator": {
         "StartAt": "Avoid Collisions Pause",
         "States": {
@@ -114,6 +114,20 @@
           }
         }
       }
+    },
+    "Update Survey Zips": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::states:startExecution.sync:2",
+      "Parameters": {
+        "Input": {
+          "cat-url.$": "$.cat-url",
+          "files-bucket": "${files_bucket}",
+          "files-prefix": "survey/",
+          "proceed": "$.proceed"
+        },
+        "StateMachineArn": "${aws_step_function_update_survey_zip}"
+      },
+      "Next": "Final State"
     },
     "Final State": {
       "Type": "Pass",

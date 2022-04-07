@@ -2,12 +2,13 @@ data "aws_caller_identity" "current" {}
 
 locals {
   pipeline_vars = {
-    "env" = var.env
+    "env"                                       = var.env
     # this is CARIS manual windows box in *DEV* account (as opposed to PROD in ../compute/ module ¯\_(ツ)_/¯ )
     "region"                                    = var.region
     "account_id"                                = data.aws_caller_identity.current.account_id
     "prefix"                                    = "ga_sb_${var.env}"
     "caris_ip"                                  = "172.31.11.235"
+    "files_bucket"                              = var.files_bucket
     "ausseabed_sm_role"                         = var.ausseabed_sm_role
     "aws_ecs_cluster_arn"                       = var.aws_ecs_cluster_main.arn
     "aws_ecs_task_definition_gdal_arn"          = var.aws_ecs_task_definition_gdal_arn
@@ -22,12 +23,17 @@ locals {
     "instance_id"                               = var.aws_instance_caris
     "local_storage_folder"                      = var.local_storage_folder
     "prod_data_s3_account_canonical_id"         = var.prod_data_s3_account_canonical_id
-    "aws_step_function_process_l3_name"         = "ga-sb-${var.env}-ausseabed-processing-pipeline-l3"
-    "steps" = ["Get caris version", "data quality check", "prepare change vessel config file", "Create HIPS file",
+    "aws_step_function_process_l3_name"         = aws_sfn_state_machine.ausseabed-processing-pipeline-l3.name
+    "aws_step_function_update_survey_zip"       = aws_sfn_state_machine.survey-zip.arn
+    "steps"                                     = [
+      "Get caris version", "data quality check", "prepare change vessel config file", "Create HIPS file",
       "Import to HIPS", "Upload checkpoint 1 to s3", "Import HIPS From Auxiliary", "Upload checkpoint 2 to s3",
-      "change vessel config file to calculated", "Compute GPS Vertical Adjustment", "change vessel config file to original",
-      "Georeference HIPS Bathymetry", "Upload checkpoint 3 to s3", "Create Variable Resolution HIPS Grid With Cube", "Upload checkpoint 5 to s3",
-    "Export raster as BAG", "Export raster as LAS"]
+      "change vessel config file to calculated", "Compute GPS Vertical Adjustment",
+      "change vessel config file to original",
+      "Georeference HIPS Bathymetry", "Upload checkpoint 3 to s3", "Create Variable Resolution HIPS Grid With Cube",
+      "Upload checkpoint 5 to s3",
+      "Export raster as BAG", "Export raster as LAS"
+    ]
     "runtask"         = "\"Type\":\"Task\",\"Resource\":\"arn:aws:states:::ecs:runTask.sync\",\"ResultPath\": \"$.previous_step__result\""
     "parameters"      = "\"LaunchType\":\"FARGATE\",\"Cluster\":\"${var.aws_ecs_cluster_main.arn}\",\"TaskDefinition\":\"${var.aws_ecs_task_definition_caris_version_arn}\",\"NetworkConfiguration\":{\"AwsvpcConfiguration\":{\"AssignPublicIp\":\"ENABLED\",\"SecurityGroups\":[\"TODO\"],\"Subnets\":[\"TODO\"]}}"
     "ecs_task_prefix" = "https://${var.region}.console.aws.amazon.com/ecs/home?region=${var.region}#/clusters/${var.aws_ecs_cluster_main.cluster_name}/tasks/{0}/details"
