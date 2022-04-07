@@ -23,8 +23,8 @@ locals {
     "instance_id"                               = var.aws_instance_caris
     "local_storage_folder"                      = var.local_storage_folder
     "prod_data_s3_account_canonical_id"         = var.prod_data_s3_account_canonical_id
-    "aws_step_function_process_l3_name"         = aws_sfn_state_machine.ausseabed-processing-pipeline-l3.name
-    "aws_step_function_update_survey_zip"       = aws_sfn_state_machine.survey-zip.arn
+    "aws_step_function_process_l3_name"         = "ga-sb-${var.env}-ausseabed-processing-pipeline-l3"
+    "aws_step_function_update_survey_zip"       = "ga-sb-${var.env}-update-survey-zip"
     "steps"                                     = [
       "Get caris version", "data quality check", "prepare change vessel config file", "Create HIPS file",
       "Import to HIPS", "Upload checkpoint 1 to s3", "Import HIPS From Auxiliary", "Upload checkpoint 2 to s3",
