@@ -6,7 +6,7 @@
       "Type": "Task",
       "Next": "Confirm Proceed?",
       "Resource": "arn:aws:states:::lambda:invoke",
-      "ResultPath": "$.data.lambdaresult",
+      "ResultPath": "$.unprocessed",
       "Parameters": {
         "FunctionName": "arn:aws:lambda:${region}:${account_id}:function:${prefix}_identify_unprocessed_grids:$LATEST",
         "Payload": {
@@ -31,7 +31,7 @@
     },
     "Build Warehouse": {
       "Type": "Map",
-      "ItemsPath": "$.data.product-ids",
+      "ItemsPath": "$.unprocessed.Payload.body.product-ids",
       "ResultPath": "$.build-warehouse-results",
       "MaxConcurrency": 20,
       "Next": "Update Survey Zips",
