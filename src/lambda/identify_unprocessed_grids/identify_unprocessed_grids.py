@@ -19,10 +19,6 @@ from update_database_action import UpdateDatabaseAction
 
 logger = logging.getLogger()
 
-# Testing showed lambda sets up one default handler. If there are more,
-# something has changed and we want to fail so an operator can investigate.
-assert len(logger.handlers) == 1
-
 logger.setLevel(logging.INFO)
 json_handler = logging.StreamHandler()
 formatter = jsonlogger.JsonFormatter(
@@ -51,6 +47,10 @@ RESOLUTION_REGEX = re.compile(r"^(?P<min>\d*\.?\d+)m?(?:.*?)?(?P<max>\d*\.?\d+)?
 
 
 def lambda_handler(event, context):
+    # Testing showed lambda sets up one default handler. If there are more,
+    # something has changed and we want to fail so an operator can investigate.
+    assert len(logger.handlers) == 1
+
     logging.info("Running the envent handler")
     logging.debug(event)
     logging.debug(context)
@@ -179,7 +179,10 @@ def extract_resolution_text(resolutions):
         match = RESOLUTION_REGEX.match(resolution)
         if match:
             min_resolution = min(min_resolution, float(match['min']))
+            max_resolution = max(max_resolution, float(match['min']))
+
             if match['max']:
+                min_resolution = min(min_resolution, float(match['max']))
                 max_resolution = max(max_resolution, float(match['max']))
 
     if max_resolution > -math.inf and not math.isclose(min_resolution, max_resolution):
