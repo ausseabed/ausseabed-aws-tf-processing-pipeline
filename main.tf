@@ -85,6 +85,7 @@ module "get_resume_lambda_function" {
   handler       = "getResumeFromStep.lambda_handler"
   runtime       = "python3.6"
   timeout       = 30
+  memory_size   = 1024
   role          = module.ancillary.getResumeFromStep_role
   create_role   = true
   enabled       = true
@@ -106,6 +107,7 @@ module "process_l2_functions" {
   handler       = "process_l2_functions.lambda_handler"
   runtime       = "python3.6"
   timeout       = 30
+  memory_size   = 1024
   role          = module.ancillary.process_l2_role
   create_role   = true
   enabled       = true
@@ -127,6 +129,7 @@ module "identify_instrument_lambda_function" {
   handler       = "identify_instrument_files.lambda_handler"
   runtime       = "python3.6"
   timeout       = 300
+  memory_size   = 1024
   role          = module.ancillary.identify_instrument_files_role
   create_role   = true
   enabled       = true
@@ -148,6 +151,7 @@ module "identify_unprocessed_grids_lambda_function" {
   handler       = "identify_unprocessed_grids.lambda_handler"
   runtime       = "python3.6"
   timeout       = 300
+  memory_size   = 1024
   role          = module.ancillary.identify_instrument_files_role
   create_role   = true
   enabled       = true
