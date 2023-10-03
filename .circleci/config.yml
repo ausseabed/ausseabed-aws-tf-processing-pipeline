@@ -48,7 +48,7 @@ commands:
 jobs:
   validate_prod_deployment:
     machine:
-      image: ubuntu-1604:201903-01
+      image: ubuntu-2004:2022.04.2
     steps:
       - checkout
       - validate_master_branch
